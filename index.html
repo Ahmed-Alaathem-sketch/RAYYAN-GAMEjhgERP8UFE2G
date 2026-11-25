@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1026">
+<title>ERROR 5.0</title>
+<!--
+  ============================================================================
+   ERROR 5.0  —  five years of memories, chaos & unforgettable moments
+  ----------------------------------------------------------------------------
+   ONE FILE. Open it directly in any modern browser (double-click). No server.
+
+   HOW TO EDIT CONTENT (everything lives in the CONFIG object in <script>):
+     • Players, descriptions, strengths, powers ........ CONFIG.players / CONFIG.powers
+     • RAYAN's power mechanics (editable) .............. CONFIG.powers.director
+     • Memory video ...................................... CONFIG.memory.video
+     • Error on the Street questions / answers ........... CONFIG.street
+     • Song Detective playlist (unlimited songs) ......... CONFIG.songs
+     • Who's That?! characters & images .................. CONFIG.whosThat
+     • Seen Jeem questions & difficulty .................. CONFIG.seenJeem
+     • All the Roles roles / challenges .................. CONFIG.roles
+     • Human Database extra questions .................... CONFIG.humanDb
+     • Guess the Legend entries .......................... CONFIG.legends
+     • Achievements / badges ............................. BADGES
+
+   MEDIA FOLDERS (next to this file):
+     assets/players/     pixel sprites of the four players (from the ERROR 5.0 PDF)
+     assets/whos-that/   character images (from the ERROR 5.0 PDF)
+     assets/memory/      put your video here  (default: last-year.mp4)
+     assets/songs/       put your mp3 clips here (song-01.mp3, song-02.mp3 ...)
+   Missing media never breaks the game: a placeholder explains how to add it.
+
+   Scores, achievements and progress are saved in LocalStorage automatically.
+  ============================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Tajawal:wght@500;800&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   1. DESIGN TOKENS  — navy / gray / green palette from the ERROR 5.0 PDF
+   ========================================================================= */
+:root{
+  --navy:#0b1026; --navy2:#111838; --panel:#161f44; --panel2:#1d2752;
+  --gray:#8a93a6; --gray2:#5a6380; --light:#dfe4ee; --white:#fff;
+  --green:#39ff7a; --green2:#1c9a49; --red:#ff4d5e; --gold:#ffd23f; --blue:#4db8ff; --purple:#b77dff; --orange:#ff9a3c;
+  --accent:var(--green);
+  --px:'Press Start 2P', 'Courier New', monospace;
+  --vt:'VT323', 'Courier New', monospace;
+  --ar:'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+  --hud-h:58px; --nav-h:62px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--navy);color:var(--light);overflow:hidden}
+body{font-family:var(--vt);font-size:22px;line-height:1.25;-webkit-font-smoothing:none;image-rendering:pixelated;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit}
+img{image-rendering:pixelated}
+.hidden{display:none!important}
+[dir=rtl],.ar{font-family:var(--ar)}
+
+/* Background: animated pixel starfield canvas + CRT scanlines + vignette */
+#bg{position:fixed;inset:0;z-index:0}
+.crt::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:900;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+.crt::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:901;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+#flash{position:fixed;inset:0;z-index:950;pointer-events:none;background:#fff;opacity:0}
+#flash.go{animation:flash .45s steps(4)}
+@keyframes flash{0%{opacity:.0}20%{opacity:.5}40%{opacity:.05}60%{opacity:.25}100%{opacity:0}}
+#fx{position:fixed;inset:0;z-index:960;pointer-events:none}
+
+/* =========================================================================
+   2. UI PRIMITIVES — pixel panels, Nintendo-style buttons, tags
+   ========================================================================= */
+.panel{background:var(--panel);border:4px solid var(--white);box-shadow:0 0 0 4px var(--navy),8px 8px 0 4px rgba(0,0,0,.45);padding:18px;position:relative}
+.panel.dark{background:#0a0f24}
+.panel.accent{border-color:var(--accent)}
+.btn{font-family:var(--px);font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px 16px;background:var(--gray2);color:var(--white);
+  border:3px solid var(--white);border-radius:6px;box-shadow:0 5px 0 #000,inset 0 -4px 0 rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.18);
+  transition:transform .06s,filter .15s;position:relative;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{filter:brightness(1.18);transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #000,inset 0 -2px 0 rgba(0,0,0,.35)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:grayscale(1)}
+.btn.green{background:var(--green2)} .btn.red{background:#c42c3d} .btn.gold{background:#b98b00} .btn.blue{background:#1f6fb3} .btn.purple{background:#6a3fb5}
+.btn.big{font-size:16px;padding:18px 26px}
+.btn.sm{font-size:9px;padding:8px 10px;border-width:2px;box-shadow:0 3px 0 #000}
+.btn.round{width:64px;height:64px;border-radius:50%;padding:0;font-size:18px;background:#c42c3d}
+.btn.ghost{background:transparent}
+.btn.on{background:var(--green2);outline:3px solid var(--green)}
+.tag{display:inline-block;font-family:var(--px);font-size:10px;padding:6px 8px;border:2px solid currentColor;color:var(--accent);background:rgba(0,0,0,.3)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.center{text-align:center;justify-content:center}
+.grow{flex:1}
+.mt{margin-top:16px}.mt2{margin-top:28px}
+.muted{color:var(--gray)}
+.px{font-family:var(--px)}
+.blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;inset:0;overflow:hidden}
+.glitch::before{color:#ff2bd6;transform:translate(-3px,0);clip-path:inset(0 0 60% 0);animation:gl1 2.2s infinite steps(1)}
+.glitch::after{color:#28f1ff;transform:translate(3px,0);clip-path:inset(55% 0 0 0);animation:gl2 1.7s infinite steps(1)}
+@keyframes gl1{0%,88%{clip-path:inset(0 0 100% 0)}90%{clip-path:inset(10% 0 60% 0)}94%{clip-path:inset(40% 0 30% 0)}98%{clip-path:inset(70% 0 5% 0)}}
+@keyframes gl2{0%,85%{clip-path:inset(100% 0 0 0)}87%{clip-path:inset(60% 0 10% 0)}92%{clip-path:inset(20% 0 55% 0)}96%{clip-path:inset(80% 0 2% 0)}}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translate(-6px,2px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,1px)}80%{transform:translate(3px,2px)}}
+.pop{animation:pop .4s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.bob{animation:bob 1.6s steps(4) infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+
+/* =========================================================================
+   3. BOOT SCREEN — ERROR 5.0: SYSTEM INITIALIZING...
+   ========================================================================= */
+#boot{position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;text-align:center;background:radial-gradient(circle at 50% 40%,#16204d 0,var(--navy) 70%)}
+#boot h1{font-family:var(--px);font-size:clamp(28px,7vw,72px);color:var(--white);text-shadow:4px 4px 0 var(--green2),8px 8px 0 #000;letter-spacing:4px}
+#boot .sub{font-family:var(--px);font-size:clamp(11px,2.2vw,18px);color:var(--green);margin-top:22px}
+#boot .msg{font-size:clamp(20px,3vw,28px);margin-top:26px;color:var(--light);max-width:760px}
+.hearts{display:flex;gap:14px;justify-content:center;margin-top:30px}
+.heart{width:40px;height:36px;position:relative;filter:drop-shadow(3px 3px 0 #000)}
+.heart svg{width:100%;height:100%}
+.heart .fill{fill:#2a335c;transition:fill .2s}
+.heart.on .fill{fill:var(--red)}
+.heart.on{animation:pop .35s}
+.heart small{position:absolute;left:0;right:0;top:44px;font-family:var(--px);font-size:7px;color:var(--gray)}
+.loadbar{width:min(560px,90vw);height:28px;border:4px solid var(--white);margin:44px auto 0;padding:3px;background:#000}
+.loadbar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--green) 0 14px,var(--green2) 14px 18px)}
+#bootLog{font-size:20px;color:var(--gray);height:26px;margin-top:12px}
+#bootBtns{margin-top:30px;gap:18px}
+.press{font-family:var(--px);font-size:10px;color:var(--gray);margin-top:22px}
+
+/* =========================================================================
+   4. HUD (top) + NAV (bottom) + MAIN STAGE
+   ========================================================================= */
+#app{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column}
+#hud{height:var(--hud-h);display:flex;align-items:center;gap:12px;padding:0 12px;background:rgba(6,9,24,.88);border-bottom:4px solid var(--white);z-index:5}
+#hud .logo{font-family:var(--px);font-size:14px;color:var(--white);text-shadow:2px 2px 0 var(--green2)}
+.prog{flex:1;min-width:80px;display:flex;align-items:center;gap:8px}
+.prog .bar{flex:1;min-width:50px;height:14px;border:3px solid var(--white);background:#000;padding:1px}
+.prog .bar i{display:block;height:100%;background:var(--accent);transition:width .5s steps(10)}
+.prog span{font-family:var(--px);font-size:9px;white-space:nowrap}
+#miniBoard{display:flex;gap:6px}
+.mini{display:flex;align-items:center;gap:4px;padding:2px 6px 2px 2px;border:2px solid var(--gray2);background:#0a0f24;font-family:var(--px);font-size:9px;transition:transform .2s}
+.mini img,.mini .ph{width:22px;height:30px;object-fit:contain}
+.mini.bump{transform:scale(1.25);border-color:var(--gold)}
+.mini.lead{border-color:var(--gold)}
+.hudbtn{width:42px;height:42px;font-size:18px;border:3px solid var(--white);background:var(--panel2);box-shadow:0 3px 0 #000;display:flex;align-items:center;justify-content:center}
+.hudbtn:active{transform:translateY(3px);box-shadow:none}
+#stage{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch}
+#nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;background:rgba(6,9,24,.9);border-top:4px solid var(--white);z-index:5}
+#nav .where{font-family:var(--px);font-size:10px;text-align:center;flex:1;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Sections */
+.screen{display:none;min-height:100%;padding:26px 18px 50px;max-width:1180px;margin:0 auto}
+.screen.active{display:block;animation:screenIn .55s steps(6)}
+@keyframes screenIn{0%{opacity:0;transform:scale(1.04);filter:hue-rotate(90deg) contrast(2)}40%{opacity:.6;transform:translateX(-8px)}70%{transform:translateX(5px)}100%{opacity:1;transform:none;filter:none}}
+.sec-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.sec-num{font-family:var(--px);font-size:clamp(28px,6vw,56px);color:var(--accent);text-shadow:4px 4px 0 #000}
+.sec-head h1{font-family:var(--px);font-size:clamp(16px,3.6vw,32px);color:var(--white);text-shadow:3px 3px 0 #000;line-height:1.3}
+.sec-head .subt{width:100%;font-size:24px;color:var(--gray)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid-side{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start}
+
+/* Toasts / system messages */
+#toasts{position:fixed;top:calc(var(--hud-h) + 10px);right:10px;z-index:970;display:flex;flex-direction:column;gap:8px;max-width:min(380px,92vw);pointer-events:none}
+.toast{background:#05081a;border:3px solid var(--green);padding:10px 12px;font-size:20px;color:var(--green);box-shadow:4px 4px 0 #000;animation:toastIn .3s steps(3)}
+.toast b{font-family:var(--px);font-size:9px;display:block;margin-bottom:4px;color:var(--white)}
+.toast.err{border-color:var(--red);color:#ffb3bb}.toast.gold{border-color:var(--gold);color:var(--gold)}.toast.power{border-color:var(--purple);color:#e2c9ff}
+@keyframes toastIn{from{transform:translateX(120%)}to{transform:none}}
+
+/* Modal + drawers */
+.overlay{position:fixed;inset:0;z-index:850;background:rgba(3,5,15,.82);display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{width:min(760px,100%);max-height:calc(100vh - 40px);overflow:auto;animation:pop .3s}
+.modal.wide{width:min(980px,100%)}
+.xbtn{position:absolute;top:8px;right:8px;width:38px;height:38px;border:3px solid var(--white);background:#c42c3d;font-family:var(--px);font-size:12px;box-shadow:0 3px 0 #000}
+#menuList{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
+.menuItem{display:flex;align-items:center;gap:10px;padding:12px;border:3px solid var(--gray2);background:#0a0f24;text-align:left;transition:transform .1s,border-color .1s}
+.menuItem:hover{transform:translateX(4px);border-color:var(--white)}
+.menuItem .n{font-family:var(--px);font-size:11px;color:var(--accent);min-width:46px}
+.menuItem .t{font-family:var(--px);font-size:10px;line-height:1.5;flex:1}
+.menuItem.cur{border-color:var(--green);background:#0f2a1c}
+.menuItem .chk{font-size:20px;color:var(--green)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);z-index:860;background:var(--navy2);border-left:4px solid var(--white);transform:translateX(105%);transition:transform .35s steps(7);display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer header{padding:16px;border-bottom:4px solid var(--white);display:flex;align-items:center;gap:10px}
+.drawer header h2{font-family:var(--px);font-size:14px;flex:1;color:var(--gold)}
+.drawer .body{overflow:auto;padding:14px;flex:1}
+.lbRow{display:flex;align-items:center;gap:10px;padding:10px;border:3px solid var(--gray2);margin-bottom:10px;background:#0a0f24}
+.lbRow.first{border-color:var(--gold);background:#2a2208}
+.lbRow .rk{font-family:var(--px);font-size:14px;width:34px;color:var(--gold)}
+.lbRow img,.lbRow .ph{width:34px;height:48px;object-fit:contain}
+.lbRow .nm{font-family:var(--px);font-size:10px;flex:1;line-height:1.6}
+.lbRow .sc{font-family:var(--px);font-size:16px;color:var(--green)}
+.adj{display:flex;flex-direction:column;gap:4px}
+.adj button{width:28px;height:22px;border:2px solid var(--white);background:var(--panel2);font-family:var(--px);font-size:10px}
+.logList{font-size:18px;color:var(--gray);margin-top:10px}
+.logList div{border-bottom:1px dashed #2a335c;padding:3px 0}
+
+/* Player sprite placeholder (when sprite file missing) */
+.ph{display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(45deg,#1d2752 0 6px,#161f44 6px 12px);border:2px dashed var(--gray);font-family:var(--px);font-size:10px;color:var(--gray)}
+
+/* =========================================================================
+   5. SECTION STYLES
+   ========================================================================= */
+/* 1.0 Welcome */
+#s-welcome,#s-players{--accent:#39ff7a}
+.welcomeBox{max-width:820px;margin:30px auto;text-align:center}
+.typer{font-size:clamp(22px,3vw,30px);min-height:180px;text-align:left;white-space:pre-wrap;color:var(--green)}
+.typer::after{content:"█";animation:blink 1s steps(2) infinite}
+.lineup{display:flex;justify-content:center;gap:clamp(6px,3vw,40px);margin-top:24px;align-items:flex-end}
+.lineup img{height:clamp(110px,22vw,190px)}
+
+/* 1.1 Character select */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.pcard{background:var(--panel);border:4px solid var(--white);box-shadow:6px 6px 0 #000;padding:14px 10px 16px;text-align:center;transition:transform .15s,border-color .15s;position:relative;overflow:hidden}
+.pcard::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(57,255,122,.12));opacity:0;transition:opacity .2s}
+.pcard:hover{transform:translateY(-8px) rotate(-1deg);border-color:var(--pc,var(--green))}
+.pcard:hover::before{opacity:1}
+.pcard .pn{font-family:var(--px);font-size:10px;color:var(--gray)}
+.pcard .sprite{height:200px;display:flex;align-items:flex-end;justify-content:center;margin:10px 0}
+.pcard .sprite img{max-height:100%;max-width:100%}
+.pcard .sprite .ph{width:110px;height:180px}
+.pcard:hover .sprite img{animation:bob .8s steps(3) infinite}
+.pcard .nm{font-family:var(--px);font-size:13px;color:var(--white);padding:8px;border:3px solid var(--white);background:#000;display:inline-block}
+.pcard .nick{font-family:var(--px);font-size:9px;color:var(--pc,var(--green));margin-top:10px}
+.pcard .cta{font-family:var(--px);font-size:8px;color:var(--gray);margin-top:10px}
+.sheet{display:grid;grid-template-columns:200px 1fr;gap:20px}
+.sheet .portrait{border:4px solid var(--white);background:#0a0f24;display:flex;align-items:flex-end;justify-content:center;padding:10px;min-height:260px}
+.sheet .portrait img{max-width:100%;max-height:260px}
+.sheet h2{font-family:var(--px);font-size:20px;color:var(--white)}
+.sheet h3{font-family:var(--px);font-size:11px;color:var(--accent);margin:16px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--px);font-size:9px;padding:8px 10px;border:3px solid var(--white);background:#0a0f24}
+.powerBox{border:3px dashed var(--purple);padding:12px;background:#1b1238}
+.powerBox .pname{font-family:var(--px);font-size:13px;color:var(--purple)}
+
+/* Power phase panel (shared) */
+.powerphase{margin-bottom:18px}
+.powerphase summary{font-family:var(--px);font-size:11px;color:var(--purple);cursor:pointer;padding:12px;border:3px solid var(--purple);background:#170f30;list-style:none}
+.powerphase summary::-webkit-details-marker{display:none}
+.powerphase[open] summary{border-bottom-width:0}
+.pp-body{border:3px solid var(--purple);border-top:0;background:#120c26;padding:12px}
+.pp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pp{border:3px solid var(--gray2);background:#0a0f24;padding:8px;display:flex;flex-direction:column;gap:6px;font-size:18px}
+.pp .who{font-family:var(--px);font-size:9px;color:var(--white)}
+.pp .pw{font-family:var(--px);font-size:8px;color:var(--purple);line-height:1.5}
+.pp.blocked{border-color:var(--red);opacity:.7}
+.pp.used{opacity:.55}
+.pp .st{font-size:16px;color:var(--gray)}
+.pp.off{opacity:.3}
+.partBar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.partBar .lbl{font-family:var(--px);font-size:9px;color:var(--gray);margin-right:4px}
+.pchip{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border:3px solid var(--gray2);background:#0a0f24;font-family:var(--px);font-size:9px;opacity:.5}
+.pchip img,.pchip .ph{width:20px;height:28px;object-fit:contain}
+.pchip.on{opacity:1;border-color:var(--green)}
+.award{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.award .lbl{font-family:var(--px);font-size:9px;color:var(--gold);width:100%}
+.timerBox{display:flex;align-items:center;gap:10px}
+.timer{display:flex;align-items:center;gap:10px;width:100%}
+.timer .tnum{font-family:var(--px);font-size:24px;min-width:56px;text-align:center;color:var(--white)}
+.timer .tbar{flex:1;height:18px;border:3px solid var(--white);background:#000;padding:2px}
+.timer .tbar i{display:block;height:100%;background:var(--green);transition:width .1s linear}
+.timer.low .tnum{color:var(--red);animation:blink .5s steps(2) infinite}
+.timer.low .tbar i{background:var(--red)}
+
+/* 2.0 MEMORY.EXE */
+#s-memory{--accent:var(--green)}
+.cine{background:#000;border:6px solid var(--white);box-shadow:0 0 0 6px #000,0 0 40px rgba(57,255,122,.25);position:relative;aspect-ratio:16/9;overflow:hidden}
+.cine video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.cine .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 2px,transparent 2px 4px);mix-blend-mode:multiply}
+.cine .rec{position:absolute;top:12px;left:14px;font-family:var(--px);font-size:10px;color:var(--red);text-shadow:2px 2px 0 #000;pointer-events:none}
+.cine .stamp{position:absolute;bottom:12px;right:14px;font-family:var(--px);font-size:9px;color:var(--white);text-shadow:2px 2px 0 #000;pointer-events:none}
+.recover{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:6%;background:#020a05;color:var(--green);font-size:clamp(16px,2.2vw,22px)}
+.recover .lines{flex:1;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+.recover .pbar{height:22px;border:3px solid var(--green);margin-top:12px;padding:2px}
+.recover .pbar i{display:block;height:100%;width:0;background:var(--green)}
+.mediaPh{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5%;gap:12px;background:repeating-linear-gradient(135deg,#0a0f24 0 18px,#0d1430 18px 36px);overflow:auto}
+.mediaPh h4{font-family:var(--px);font-size:clamp(11px,1.8vw,15px);color:var(--gold)}
+.mediaPh p{font-size:clamp(16px,2vw,21px);max-width:620px}
+.mediaPh code{font-family:var(--vt);background:#000;color:var(--green);padding:0 6px;border:1px solid var(--green2)}
+.vcontrols{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.seek{flex:1;min-width:140px;height:18px;border:3px solid var(--white);background:#000;position:relative;cursor:pointer}
+.seek i{position:absolute;left:0;top:0;bottom:0;background:var(--green)}
+.vtime{font-family:var(--px);font-size:10px;min-width:110px;text-align:center}
+.glitchIn{animation:glitchIn .8s steps(8)}
+@keyframes glitchIn{0%{filter:contrast(3) hue-rotate(180deg);transform:skewX(20deg);opacity:0}30%{transform:skewX(-10deg) translateX(10px);opacity:.6}60%{filter:contrast(2);transform:skewX(4deg)}100%{filter:none;transform:none;opacity:1}}
+
+/* 3.0 ERROR ON THE STREET — TV show */
+#s-street{--accent:var(--red)}
+.tv{background:#14080c;border:6px solid var(--white);border-radius:18px;padding:22px;position:relative;box-shadow:0 0 0 6px #000,10px 10px 0 6px rgba(0,0,0,.5);overflow:hidden}
+.tv::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+.onair{position:absolute;top:14px;right:16px;font-family:var(--px);font-size:11px;background:var(--red);color:#fff;padding:6px 8px;animation:blink 1.2s steps(2) infinite}
+.lowerthird{display:flex;align-items:center;gap:14px;margin-top:10px}
+.lowerthird .bar{background:var(--red);padding:10px 14px;font-family:var(--px);font-size:clamp(14px,2.4vw,22px);color:#fff;box-shadow:5px 5px 0 #000}
+.lowerthird .bar2{background:#fff;color:#000;padding:6px 10px;font-family:var(--px);font-size:10px}
+.interview{display:grid;grid-template-columns:170px 1fr;gap:20px;align-items:center;margin-top:18px}
+.interview .guest{display:flex;align-items:flex-end;justify-content:center;height:220px;position:relative}
+.interview .guest img{max-height:100%}
+.interview .guest .ph{width:110px;height:180px}
+.mic{position:absolute;right:-6px;bottom:60px;font-size:34px;transform:rotate(-20deg)}
+.bubble{background:#fff;color:#111;border:4px solid #000;padding:14px 16px;font-size:clamp(22px,2.8vw,30px);position:relative;box-shadow:6px 6px 0 rgba(0,0,0,.5);min-height:70px}
+.bubble.q{background:#ffe36b}
+.bubble .who{font-family:var(--px);font-size:9px;display:block;margin-bottom:6px;color:#9a1020}
+.ticker{margin-top:18px;background:#000;border-top:3px solid var(--red);overflow:hidden;white-space:nowrap;font-family:var(--px);font-size:10px;padding:8px 0;color:var(--gold)}
+.ticker span{display:inline-block;padding-left:100%;animation:ticker 22s linear infinite}
+@keyframes ticker{to{transform:translateX(-100%)}}
+
+/* 4.0 SONG DETECTIVE */
+#s-song{--accent:var(--purple)}
+.vinylWrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center}
+.sleeve{width:220px;height:220px;background:#eee;border:4px solid #fff;box-shadow:6px 6px 0 #000;display:flex;align-items:center;justify-content:center;color:#111;font-family:var(--px);font-size:46px;position:relative;z-index:2}
+.vinyl{width:210px;height:210px;border-radius:50%;margin-left:-120px;background:repeating-radial-gradient(circle,#111 0 4px,#1d1d1d 4px 6px);border:4px solid #000;position:relative;transition:margin .5s}
+.vinyl::after{content:"";position:absolute;inset:34%;border-radius:50%;background:radial-gradient(circle,#000 0 8%,var(--purple) 9% 100%)}
+.vinyl.spin{animation:spin 1.8s linear infinite;margin-left:-60px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.eq{display:flex;gap:4px;height:60px;align-items:flex-end}
+.eq i{width:10px;background:var(--purple);height:8px}
+.eq.on i{animation:eq .5s steps(4) infinite alternate}
+.eq i:nth-child(2n){animation-delay:.15s}.eq i:nth-child(3n){animation-delay:.3s}
+@keyframes eq{to{height:56px}}
+.answerCard{font-family:var(--px);font-size:clamp(14px,2.4vw,22px);color:var(--gold);text-align:center;padding:18px;border:4px dashed var(--gold);margin-top:16px;min-height:76px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.answerCard small{font-size:10px;color:var(--light)}
+.answerCard.hid{color:var(--gray2);border-color:var(--gray2)}
+.playlist{max-height:360px;overflow:auto}
+.trk{display:flex;gap:8px;align-items:center;padding:8px;border-bottom:2px dashed #2a335c;font-size:19px;cursor:pointer}
+.trk:hover{background:#1d1640}
+.trk.cur{background:#2a1c55;color:#fff}
+.trk .n{font-family:var(--px);font-size:9px;width:28px;color:var(--purple)}
+
+/* 5.0 LEVEL UP */
+#s-levelup{--accent:var(--gold)}
+.lvcard{background:linear-gradient(160deg,#1c2350,#0b1026);border:5px solid var(--gold);box-shadow:0 0 0 5px #000,0 0 50px rgba(255,210,63,.25);padding:20px;text-align:center;position:relative;overflow:hidden}
+.lvcard::before{content:"";position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 20deg,rgba(255,210,63,.07) 20deg 40deg);animation:spin 18s linear infinite}
+.lvcard>*{position:relative}
+.lvcard .lv{font-family:var(--px);font-size:clamp(22px,4vw,40px);color:var(--gold);text-shadow:4px 4px 0 #000}
+.lvcard .mc{font-family:var(--px);font-size:11px;color:var(--green);margin-top:10px}
+.lvcard .sprite{height:190px;display:flex;justify-content:center;align-items:flex-end;margin:12px 0}
+.lvcard .sprite img{max-height:100%}
+.lvcard .sprite .ph{width:100px;height:170px}
+.lvcard .pl{font-family:var(--px);font-size:12px;color:var(--gray)}
+.lvcard .big{font-family:var(--px);font-size:clamp(20px,3.4vw,32px);color:var(--white);margin:8px 0;text-shadow:3px 3px 0 var(--green2)}
+.stat{font-family:var(--px);font-size:11px;margin:8px 0;line-height:1.6}
+.stat b{color:var(--red)}
+.xp{height:20px;border:3px solid var(--white);background:#000;padding:2px;margin:10px auto;max-width:300px}
+.xp i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--gold) 0 10px,#d9a400 10px 14px);transition:width 1.6s steps(20)}
+.lvcard .quote{font-size:24px;color:var(--light);margin-top:10px}
+.lvcard .welcome{font-family:var(--px);font-size:clamp(10px,1.6vw,13px);color:var(--gold);margin-top:14px;padding:10px;border:3px solid var(--gold);background:#000;line-height:1.6}
+.badgeStamp{position:absolute;top:16px;right:-36px;transform:rotate(35deg);background:var(--red);color:#fff;font-family:var(--px);font-size:8px;padding:6px 40px;box-shadow:0 3px 0 #000}
+
+/* 6.0 WHO'S THAT */
+#s-whos{--accent:var(--blue)}
+.whoFrame{position:relative;aspect-ratio:4/3;background:#000;border:6px solid var(--white);box-shadow:0 0 0 6px #000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.whoFrame img{max-width:100%;max-height:100%;object-fit:contain;transition:filter .3s linear}
+.whoFrame .qm{position:absolute;font-family:var(--px);font-size:90px;color:rgba(255,255,255,.08);pointer-events:none}
+.whoFrame.shadow img{filter:brightness(0)!important}
+.nameReveal{font-family:var(--px);font-size:clamp(18px,3.6vw,34px);text-align:center;margin-top:14px;min-height:46px;color:var(--blue);text-shadow:3px 3px 0 #000}
+.nameReveal small{display:block;font-size:11px;color:var(--light);margin-top:8px}
+
+/* 7.0 SEEN JEEM */
+#s-seenjeem{--accent:var(--orange)}
+.sjBoard{display:grid;gap:10px}
+.sjCat{font-family:var(--ar);font-weight:800;font-size:20px;text-align:center;background:var(--orange);color:#1a0c00;padding:10px 4px;border:3px solid #fff;box-shadow:4px 4px 0 #000;display:flex;align-items:center;justify-content:center}
+.sjTile{font-family:var(--px);font-size:clamp(14px,2.2vw,22px);padding:18px 4px;background:#1a2a5c;border:3px solid #fff;box-shadow:4px 4px 0 #000;color:var(--gold);transition:transform .1s}
+.sjTile:hover{transform:scale(1.05);background:#24408a}
+.sjTile.done{background:#0a0f24;color:#2a335c;cursor:default;transform:none;border-color:#2a335c}
+.sjTile .lvl{display:block;font-size:8px;color:var(--light);margin-top:6px}
+.sjQ{font-family:var(--ar);font-weight:800;font-size:clamp(24px,3.4vw,36px);text-align:center;line-height:1.6;color:#fff;margin:14px 0}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{font-family:var(--ar);font-weight:800;font-size:clamp(18px,2.6vw,24px);padding:14px;background:#1a2a5c;border:3px solid #fff;box-shadow:0 5px 0 #000;text-align:center;transition:transform .08s}
+.choice:hover{background:#24408a}
+.choice:active{transform:translateY(4px);box-shadow:none}
+.choice.right{background:var(--green2);border-color:var(--green)}
+.choice.wrong{background:#7a1622;border-color:var(--red)}
+.choice.gone{visibility:hidden}
+.choice .k{font-family:var(--px);font-size:11px;color:var(--gold);margin-inline-end:8px}
+.manual{display:flex;gap:8px;margin-top:14px}
+.manual input{flex:1;font-family:var(--ar);font-size:22px;padding:10px;background:#000;color:#fff;border:3px solid #fff;outline:none;user-select:text}
+
+/* 8.0 ALL THE ROLES */
+#s-roles{--accent:#ff5fc8}
+.roleGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.roleCard{background:var(--panel);border:4px solid var(--white);padding:12px;text-align:center;box-shadow:5px 5px 0 #000;min-height:290px;display:flex;flex-direction:column;align-items:center}
+.roleCard .sprite{height:130px;display:flex;align-items:flex-end}
+.roleCard .sprite img{max-height:100%}
+.roleCard .sprite .ph{width:70px;height:120px}
+.roleCard .who{font-family:var(--px);font-size:10px;margin:8px 0}
+.slot{width:100%;border:3px solid #ff5fc8;background:#000;padding:8px;min-height:96px;display:flex;flex-direction:column;justify-content:center}
+.slot .rn{font-family:var(--px);font-size:10px;color:#ff5fc8;line-height:1.5}
+.slot .rd{font-size:18px;margin-top:4px}
+.slot.rolling .rn{animation:blink .12s steps(2) infinite}
+.challenge{font-size:clamp(24px,3vw,32px);text-align:center;padding:18px;min-height:90px;color:#fff}
+
+/* 9.0 THE HUMAN DATABASE */
+#s-database{--accent:var(--green)}
+.term{background:#020a05;border:4px solid var(--green);color:var(--green);padding:16px;font-size:21px;box-shadow:0 0 30px rgba(57,255,122,.15) inset,6px 6px 0 #000}
+.term .prompt::before{content:"C:\\ERROR5\\DB> ";color:var(--green2)}
+.term input{background:transparent;border:0;color:var(--green);outline:none;width:60%;user-select:text}
+.dbRec{border:2px dashed var(--green2);padding:10px;margin-top:10px}
+.dbRec b{color:#fff}
+.dbChoices{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.dbChoice{border:3px solid var(--green);background:#04160b;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--px);font-size:9px;color:#fff}
+.dbChoice img,.dbChoice .ph{height:90px;width:60px;object-fit:contain}
+.dbChoice:hover{background:#0b3018}
+.dbChoice.right{background:var(--green2)}.dbChoice.wrong{background:#7a1622;border-color:var(--red)}.dbChoice.gone{opacity:.15;pointer-events:none}
+
+/* 10.0 GUESS THE LEGEND */
+#s-legend{--accent:#ffb347}
+.clues{display:flex;flex-direction:column;gap:10px}
+.clue{border:3px solid #ffb347;background:#1e1405;padding:12px;font-size:24px;display:flex;gap:12px;align-items:center}
+.clue .cn{font-family:var(--px);font-size:10px;color:#ffb347;white-space:nowrap}
+.clue.locked{border-style:dashed;color:var(--gray2);border-color:var(--gray2);background:transparent}
+.legendAns{font-family:var(--px);font-size:clamp(16px,3vw,28px);color:#ffb347;text-align:center;margin-top:14px;min-height:40px}
+.worth{font-family:var(--px);font-size:12px;color:var(--gold)}
+
+/* 11.0 ACHIEVEMENTS */
+#s-achievements{--accent:var(--gold)}
+.achPlayer{margin-bottom:22px}
+.achPlayer h3{font-family:var(--px);font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.achPlayer h3 img,.achPlayer h3 .ph{height:44px;width:32px;object-fit:contain}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.badge{border:3px solid var(--gold);background:#231c06;padding:10px;text-align:center}
+.badge .ic{font-size:30px}
+.badge .bn{font-family:var(--px);font-size:8px;color:var(--gold);margin-top:6px;line-height:1.5}
+.badge .bd{font-size:16px;margin-top:4px}
+.badge.locked{border-color:#2a335c;background:#0a0f24;filter:grayscale(1);opacity:.45}
+#achPop{position:fixed;left:50%;top:calc(var(--hud-h) + 14px);transform:translate(-50%,calc(-100% - 200px));z-index:975;background:#000;border:4px solid var(--gold);padding:10px 16px;display:flex;gap:12px;align-items:center;transition:transform .4s steps(6);box-shadow:6px 6px 0 rgba(0,0,0,.6);max-width:92vw}
+#achPop.show{transform:translate(-50%,0)}
+#achPop .ic{font-size:34px}
+#achPop b{font-family:var(--px);font-size:9px;color:var(--gold);display:block}
+#achPop span{font-family:var(--px);font-size:11px;color:#fff;line-height:1.6}
+
+/* GAME OVER */
+#s-gameover{--accent:var(--red)}
+.goTitle{font-family:var(--px);font-size:clamp(36px,9vw,96px);text-align:center;color:var(--red);text-shadow:6px 6px 0 #000}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:12px;margin:30px 0 10px}
+.pod{display:flex;flex-direction:column;align-items:center;width:min(22%,170px)}
+.pod img{max-height:150px;max-width:100%}
+.pod .ph{width:70px;height:120px}
+.pod .blk{width:100%;border:4px solid #fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:8px;font-family:var(--px);box-shadow:5px 5px 0 #000}
+.pod .blk .p{font-size:18px}
+.pod .blk .s{font-size:10px;margin-top:6px}
+.pod .nm{font-family:var(--px);font-size:9px;margin:6px 0;text-align:center}
+.tbl{width:100%;border-collapse:collapse;font-size:20px}
+.tbl th{font-family:var(--px);font-size:9px;color:var(--gray);text-align:left;padding:8px;border-bottom:3px solid var(--white)}
+.tbl td{padding:8px;border-bottom:2px dashed #2a335c}
+.tbl td.num{text-align:right;font-family:var(--px);font-size:11px}
+.tbl tr.tot td{color:var(--gold);font-family:var(--px);font-size:11px}
+.tblWrap{overflow-x:auto}
+
+/* =========================================================================
+   6. RESPONSIVE
+   ========================================================================= */
+@media (max-width:980px){
+  .grid-side{grid-template-columns:1fr}
+  .cards,.roleGrid{grid-template-columns:repeat(2,1fr)}
+  .pp-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:760px){
+  :root{--hud-h:96px;--nav-h:58px}
+  body{font-size:20px}
+  #hud{flex-wrap:wrap;height:auto;min-height:var(--hud-h);padding:6px 8px;row-gap:6px}
+  #hud .logo{font-size:11px}
+  #miniBoard{order:5;width:100%;justify-content:space-between}
+  .mini{flex:1;justify-content:center}
+  .grid2{grid-template-columns:1fr}
+  .sheet{grid-template-columns:1fr}
+  .sheet .portrait{min-height:200px}
+  .interview{grid-template-columns:1fr}
+  .interview .guest{height:160px}
+  .choices{grid-template-columns:1fr}
+  .dbChoices{grid-template-columns:repeat(2,1fr)}
+  .pcard .sprite{height:150px}
+  .btn{font-size:10px;padding:11px 12px}
+  .btn.big{font-size:12px;padding:14px 18px}
+  #nav .btn{padding:10px 8px}
+  .screen{padding:18px 12px 40px}
+  .vinyl{width:160px;height:160px}.sleeve{width:170px;height:170px}
+  .sjTile{padding:12px 2px}
+  .sjCat{font-size:15px}
+}
+@media (max-width:420px){
+  .cards,.roleGrid{grid-template-columns:1fr 1fr;gap:10px}
+  .pcard .nm{font-size:10px;padding:6px}
+  .hearts{gap:8px}.heart{width:32px;height:30px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+</head>
+<body class="crt">
+<canvas id="bg"></canvas>
+<canvas id="fx"></canvas>
+<div id="flash"></div>
+<div id="toasts"></div>
+<div id="achPop"><div class="ic">🏆</div><div><b>ACHIEVEMENT UNLOCKED!</b><span id="achPopTxt"></span></div></div>
+
+<!-- =====================================================================
+     BOOT SCREEN
+     ===================================================================== -->
+<div id="boot">
+  <h1 class="glitch" data-text="ERROR 5.0:">ERROR 5.0:</h1>
+  <div class="sub">SYSTEM INITIALIZING<span class="blink">...</span></div>
+  <div class="hearts" id="hearts"></div>
+  <div class="loadbar"><i id="loadFill"></i></div>
+  <div id="bootLog">&gt; BOOTING...</div>
+  <div class="msg">PREPARING FIVE YEARS OF MEMORIES, CHAOS &amp; UNFORGETTABLE MOMENTS</div>
+  <div class="row center hidden" id="bootBtns">
+    <button class="btn green big" id="btnStart">▶ START</button>
+    <button class="btn big hidden" id="btnContinue">↻ CONTINUE</button>
+    <button class="btn big" id="btnBootMenu">☰ MENU</button>
+  </div>
+  <div class="press hidden" id="pressAny">PRESS ENTER TO START</div>
+</div>
+
+<!-- =====================================================================
+     APP SHELL: HUD / STAGE / NAV
+     ===================================================================== -->
+<div id="app">
+  <header id="hud">
+    <button class="logo" id="logoBtn" title="Menu">ERROR 5.0</button>
+    <div class="prog" title="Progress through the experience"><span id="progTxt">0/0</span><div class="bar"><i id="progFill" style="width:0"></i></div></div>
+    <div id="miniBoard" title="Live leaderboard"></div>
+    <button class="hudbtn" id="lbBtn" title="Leaderboard">🏆</button>
+    <button class="hudbtn" id="muteBtn" title="Sound on/off">🔊</button>
+    <button class="hudbtn" id="menuBtn" title="Menu">☰</button>
+  </header>
+
+  <main id="stage">
+
+    <!-- ============ 1.0 SYSTEM WELCOMING ============ -->
+    <section class="screen" id="s-welcome">
+      <div class="sec-head"><span class="sec-num">1.0</span><h1>SYSTEM WELCOMING</h1></div>
+      <div class="panel welcomeBox">
+        <div class="typer" id="welcomeTyper"></div>
+        <div class="lineup" id="welcomeLineup"></div>
+        <div class="row center mt2"><button class="btn green big" data-go="next">SELECT PLAYERS ▶</button></div>
+      </div>
+    </section>
+
+    <!-- ============ CHARACTER SELECT ============ -->
+    <section class="screen" id="s-players">
+      <div class="sec-head"><span class="sec-num">1.0</span><h1>CHOOSE YOUR PLAYER</h1><div class="subt">PLAYER 1.0 · PLAYER 2.0 · PLAYER 3.0 · PLAYER 4.0 — click a card to open the character sheet</div></div>
+      <div class="cards" id="playerCards"></div>
+      <div class="panel dark mt2">
+        <div class="px" style="font-size:11px;color:var(--purple)">⚡ HOW SPECIAL POWERS WORK</div>
+        <p class="mt">Every game has a <b>POWER PHASE</b> panel. Use powers <b>before the game begins</b>. Each player can use their power once per game. GHOST MODE can block a player; GAME CONTROLLER can swap two players' powers. Press <b>NEW ROUND</b> in a game to reset powers.</p>
+      </div>
+    </section>
+
+    <!-- ============ 2.0 MEMORY.EXE ============ -->
+    <section class="screen" id="s-memory">
+      <div class="sec-head"><span class="sec-num">2.0</span><h1>MEMORY.EXE</h1><div class="subt">RECOVERING LAST YEAR FILES</div></div>
+      <div class="cine" id="cine">
+        <video id="memVideo" playsinline preload="metadata"></video>
+        <div class="scan"></div>
+        <div class="rec hidden" id="memRec">● REC &nbsp;PLAYBACK</div>
+        <div class="stamp" id="memStamp">MEMORY.EXE</div>
+        <div class="recover" id="memRecover">
+          <div class="lines" id="memLines"><div>&gt; MEMORY.EXE v5.0</div><div>&gt; CORRUPTED ARCHIVE DETECTED: LAST_YEAR/</div><div>&gt; PRESS [ RECOVER FILES ] TO BEGIN</div></div>
+          <div class="pbar"><i id="memBar"></i></div>
+        </div>
+        <div class="mediaPh hidden" id="memPh"></div>
+      </div>
+      <div class="vcontrols">
+        <button class="btn green" id="memRecoverBtn">⟳ RECOVER FILES</button>
+        <button class="btn" id="memPlay" disabled>▶ PLAY</button>
+        <div class="seek" id="memSeek"><i id="memSeekFill" style="width:0"></i></div>
+        <span class="vtime" id="memTime">00:00 / 00:00</span>
+        <button class="btn sm" id="memMute">🔊</button>
+        <button class="btn sm" id="memFs">⛶ FULLSCREEN</button>
+        <label class="btn sm blue" title="Pick a video from this device (only for this session)">📂 LOAD VIDEO<input type="file" accept="video/*" id="memFile" hidden></label>
+      </div>
+    </section>
+
+    <!-- ============ 3.0 ERROR ON THE STREET ============ -->
+    <section class="screen" id="s-street">
+      <div class="sec-head"><span class="sec-num">3.0</span><h1>ERROR ON THE STREET</h1><div class="subt">unexpected answers, just pure glitches!</div></div>
+      <div class="partBar" data-part="street"></div>
+      <details class="powerphase" data-power="street"></details>
+      <div class="tv">
+        <div class="onair">● ON AIR</div>
+        <div class="lowerthird"><div class="bar" id="stName">PLAYER</div><div class="bar2">LIVE · ERROR TV</div></div>
+        <div class="interview">
+          <div class="guest" id="stGuest"></div>
+          <div>
+            <div class="bubble q" id="stQ"><span class="who">🎤 REPORTER</span><span class="txt">Press RANDOMIZE to start the interview!</span></div>
+            <div class="bubble mt" id="stA"><span class="who" id="stAwho">GUEST</span><span class="txt">...</span></div>
+          </div>
+        </div>
+        <div class="ticker"><span id="stTicker">BREAKING: ERROR 5.0 REPORTERS HIT THE STREETS · NO ANSWER IS SAFE · </span></div>
+      </div>
+      <div class="row center mt2">
+        <button class="btn red big" id="stRand">🎲 RANDOMIZE</button>
+        <button class="btn big" id="stNext">NEXT PLAYER ▶</button>
+        <button class="btn gold" id="stBest">⭐ BEST ANSWER +5</button>
+      </div>
+    </section>
+
+    <!-- ============ 4.0 SONG DETECTIVE ============ -->
+    <section class="screen" id="s-song">
+      <div class="sec-head"><span class="sec-num">4.0</span><h1>SONG DETECTIVE</h1><div class="subt">PROVE YOUR MUSIC KNOWLEDGE!</div></div>
+      <div class="partBar" data-part="song"></div>
+      <details class="powerphase" data-power="song"></details>
+      <div class="grid-side">
+        <div class="panel accent">
+          <div class="row" style="justify-content:space-between"><span class="tag" id="sgTrack">TRACK 1/1</span><span class="tag" id="sgPts">+10 PTS</span></div>
+          <div class="vinylWrap mt2">
+            <div class="sleeve">?</div>
+            <div class="vinyl" id="sgVinyl"></div>
+            <div class="eq" id="sgEq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="mt2 timerBox" id="sgTimer"></div>
+          <div class="row center mt">
+            <button class="btn green" id="sgPlay">▶ PLAY CLIP</button>
+            <button class="btn" id="sgReplay">⟲ REPLAY</button>
+            <button class="btn gold" id="sgReveal">👁 REVEAL</button>
+            <button class="btn" id="sgNext">NEXT ▶</button>
+          </div>
+          <div class="answerCard hid" id="sgAnswer">??? ??? ???</div>
+          <div class="award mt" id="sgAward"></div>
+          <audio id="sgAudio" preload="auto"></audio>
+        </div>
+        <div class="panel">
+          <div class="px" style="font-size:10px;color:var(--purple)">PLAYLIST</div>
+          <div class="playlist mt" id="sgList"></div>
+          <label class="btn sm blue mt" style="width:100%">📂 ADD MP3 FILES (THIS SESSION)<input type="file" accept="audio/*" multiple id="sgFile" hidden></label>
+          <p class="muted mt" style="font-size:17px">Permanent songs: put files in <code>assets/songs/</code> and list them in <code>CONFIG.songs</code>. Titles stay hidden until REVEAL.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5.0 LEVEL UP! ============ -->
+    <section class="screen" id="s-levelup">
+      <div class="sec-head"><span class="sec-num">5.0</span><h1>LEVEL UP!</h1></div>
+      <div class="grid2" id="lvCards"></div>
+      <div class="row center mt2">
+        <button class="btn gold big" id="lvCelebrate">🎆 CELEBRATE!</button>
+        <button class="btn big" id="lvMusic">♪ MUSIC: OFF</button>
+      </div>
+    </section>
+
+    <!-- ============ 6.0 WHO'S THAT?! ============ -->
+    <section class="screen" id="s-whos">
+      <div class="sec-head"><span class="sec-num">6.0</span><h1>WHO'S THAT?!</h1><div class="subt">ERROR GROUP COLLABORATION: DISNEY &amp; PIXAR EDITION</div></div>
+      <div class="partBar" data-part="whos"></div>
+      <details class="powerphase" data-power="whos"></details>
+      <div class="grid-side">
+        <div class="panel accent">
+          <div class="row" style="justify-content:space-between"><span class="tag" id="whCount">1/10</span>
+            <div class="row"><button class="btn sm" id="whMode">MODE: BLUR</button><button class="btn sm" id="whShuffle">🔀 SHUFFLE</button></div></div>
+          <div class="whoFrame mt" id="whFrame"><span class="qm">?</span></div>
+          <div class="nameReveal" id="whName">? ? ?</div>
+        </div>
+        <div class="panel">
+          <div class="timerBox" id="whTimer"></div>
+          <div class="row mt" style="flex-direction:column;align-items:stretch">
+            <button class="btn green" id="whStart">▶ START TIMER</button>
+            <button class="btn gold" id="whReveal">👁 REVEAL ANSWER</button>
+            <button class="btn" id="whNext">NEXT CHARACTER ▶</button>
+          </div>
+          <div class="award mt2" id="whAward"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7.0 SEEN JEEM ============ -->
+    <section class="screen" id="s-seenjeem">
+      <div class="sec-head"><span class="sec-num">7.0</span><h1>SEEN JEEM</h1><div class="subt ar" dir="rtl">سين جيم — اختر فئة وسؤالاً، وأجب قبل نهاية الوقت!</div></div>
+      <div class="partBar" data-part="seenjeem"></div>
+      <details class="powerphase" data-power="seenjeem"></details>
+      <div class="row" style="margin-bottom:14px">
+        <span class="px" style="font-size:9px;color:var(--gray)">DIFFICULTY:</span>
+        <button class="btn sm" data-sjlvl="0">ALL</button>
+        <button class="btn sm" data-sjlvl="1">EASY</button>
+        <button class="btn sm" data-sjlvl="2">MEDIUM</button>
+        <button class="btn sm" data-sjlvl="3">HARD</button>
+        <span class="grow"></span>
+        <button class="btn sm red" id="sjReset">↺ RESET BOARD</button>
+      </div>
+      <div class="sjBoard" id="sjBoard" dir="rtl"></div>
+      <div class="panel accent hidden mt" id="sjQBox">
+        <div class="row" style="justify-content:space-between"><span class="tag ar" id="sjCatTag"></span><span class="tag" id="sjPtsTag"></span></div>
+        <div class="sjQ" dir="rtl" id="sjQ"></div>
+        <div class="partBar" id="sjWho"></div>
+        <div class="timerBox" id="sjTimer"></div>
+        <div class="choices mt" dir="rtl" id="sjChoices"></div>
+        <div class="manual" dir="rtl"><input id="sjInput" placeholder="اكتب إجابتك هنا..." autocomplete="off"><button class="btn green" id="sjSubmit">✔</button></div>
+        <div class="answerCard hid ar" id="sjAnswer">؟</div>
+        <div class="row center mt"><button class="btn gold" id="sjReveal">👁 REVEAL</button><button class="btn" id="sjBack">◀ BOARD</button></div>
+      </div>
+    </section>
+
+    <!-- ============ 8.0 ALL THE ROLES ============ -->
+    <section class="screen" id="s-roles">
+      <div class="sec-head"><span class="sec-num">8.0</span><h1>ALL THE ROLES</h1><div class="subt">random roles · random challenges · zero mercy</div></div>
+      <div class="partBar" data-part="roles"></div>
+      <details class="powerphase" data-power="roles"></details>
+      <div class="roleGrid" id="roleGrid"></div>
+      <div class="row center mt2"><button class="btn big" style="background:#a3337f" id="rlAssign">🎰 ASSIGN ROLES</button></div>
+      <div class="panel mt2" style="border-color:#ff5fc8">
+        <div class="px" style="font-size:10px;color:#ff5fc8">RANDOM CHALLENGE</div>
+        <div class="challenge" id="rlChallenge">Press RANDOM CHALLENGE to pick a victim… er, player.</div>
+        <div class="timerBox" id="rlTimer"></div>
+        <div class="row center mt">
+          <button class="btn" style="background:#a3337f" id="rlChal">🎲 RANDOM CHALLENGE</button>
+          <button class="btn green" id="rlStartT">▶ TIMER</button>
+          <button class="btn gold" id="rlDone">✔ COMPLETED +15</button>
+          <button class="btn red" id="rlFail">✖ FAILED</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 9.0 THE HUMAN DATABASE ============ -->
+    <section class="screen" id="s-database">
+      <div class="sec-head"><span class="sec-num">9.0</span><h1>THE HUMAN DATABASE</h1><div class="subt">query the records · then prove you know your friends</div></div>
+      <div class="partBar" data-part="database"></div>
+      <details class="powerphase" data-power="database"></details>
+      <div class="grid2">
+        <div class="term">
+          <div>ERROR 5.0 HUMAN DATABASE [4 RECORDS]</div>
+          <div class="prompt mt">QUERY <input id="dbSearch" placeholder="type a name or strength..." autocomplete="off"></div>
+          <div id="dbRecords"></div>
+        </div>
+        <div class="term">
+          <div class="row" style="justify-content:space-between"><span>QUIZ MODE</span><span id="dbCount">Q 0</span></div>
+          <div class="mt" id="dbQ" style="color:#fff;font-size:24px;min-height:64px">&gt; Press NEW QUESTION</div>
+          <div class="partBar mt" id="dbWho"></div>
+          <div class="dbChoices" id="dbChoices"></div>
+          <div class="row center mt"><button class="btn green" id="dbNew">NEW QUESTION</button><button class="btn gold" id="dbReveal">REVEAL</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10.0 GUESS THE LEGEND ============ -->
+    <section class="screen" id="s-legend">
+      <div class="sec-head"><span class="sec-num">10.0</span><h1>GUESS THE LEGEND</h1><div class="subt">fewer clues = more points</div></div>
+      <div class="partBar" data-part="legend"></div>
+      <details class="powerphase" data-power="legend"></details>
+      <div class="grid-side">
+        <div class="panel accent">
+          <div class="row" style="justify-content:space-between"><span class="tag" id="lgCount">LEGEND 1/1</span><span class="worth" id="lgWorth">WORTH: 30</span></div>
+          <div class="clues mt" id="lgClues"></div>
+          <div class="legendAns" id="lgAns">? ? ?</div>
+        </div>
+        <div class="panel">
+          <div class="timerBox" id="lgTimer"></div>
+          <div class="row mt" style="flex-direction:column;align-items:stretch">
+            <button class="btn green" id="lgStart">▶ START</button>
+            <button class="btn" id="lgClue">🔍 NEXT CLUE</button>
+            <button class="btn gold" id="lgReveal">👁 REVEAL</button>
+            <button class="btn" id="lgNext">NEXT LEGEND ▶</button>
+          </div>
+          <div class="award mt2" id="lgAward"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11.0 ACHIEVEMENT UNLOCKED! ============ -->
+    <section class="screen" id="s-achievements">
+      <div class="sec-head"><span class="sec-num">11.0</span><h1>ACHIEVEMENT UNLOCKED!</h1><div class="subt">badges earned across every game</div></div>
+      <div id="achList"></div>
+    </section>
+
+    <!-- ============ GAME OVER ============ -->
+    <section class="screen" id="s-gameover">
+      <div class="goTitle glitch" data-text="GAME OVER!">GAME OVER!</div>
+      <div class="sec-head center" style="justify-content:center;margin-top:10px"><div class="subt center" id="goWinner"></div></div>
+      <div class="podium" id="goPodium"></div>
+      <div class="panel mt2"><div class="px" style="font-size:10px;color:var(--gold);margin-bottom:10px">FINAL RESULTS — POINTS PER GAME</div><div class="tblWrap" id="goTable"></div></div>
+      <div class="row center mt2">
+        <button class="btn green big" id="goAgain">↻ PLAY AGAIN</button>
+        <button class="btn big" id="goMenu">☰ MENU</button>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="nav">
+    <button class="btn" id="prevBtn">◀ BACK</button>
+    <div class="where" id="whereTxt"></div>
+    <button class="btn green" id="nextBtn">NEXT ▶</button>
+  </nav>
+</div>
+
+<!-- Menu overlay -->
+<div class="overlay" id="menu">
+  <div class="panel modal wide">
+    <button class="xbtn" data-close="menu">X</button>
+    <div class="px" style="font-size:16px;color:var(--white)">☰ MAIN MENU</div>
+    <div class="row mt" style="gap:8px"><span class="px" style="font-size:9px;color:var(--gray)" id="menuProg"></span></div>
+    <div id="menuList"></div>
+    <div class="row mt2">
+      <button class="btn sm gold" id="mLeader">🏆 LEADERBOARD</button>
+      <button class="btn sm" id="mMute">🔊 SOUND</button>
+      <button class="btn sm blue" id="mIntro">▶ REPLAY INTRO</button>
+      <button class="btn sm red" id="mReset">⚠ RESET ALL DATA</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic modal -->
+<div class="overlay" id="modal"><div class="panel modal" id="modalBox"><button class="xbtn" data-close="modal">X</button><div id="modalBody"></div></div></div>
+
+<!-- Leaderboard drawer -->
+<aside class="drawer" id="lbDrawer">
+  <header><h2>🏆 LEADERBOARD</h2><button class="btn sm" id="lbUndo">↶ UNDO</button><button class="xbtn" style="position:static" id="lbClose">X</button></header>
+  <div class="body"><div id="lbRows"></div><div class="px mt" style="font-size:9px;color:var(--gray)">RECENT EVENTS</div><div class="logList" id="lbLog"></div></div>
+</aside>
+
+<script>
+/* ===========================================================================
+   CONFIG — EDIT EVERYTHING HERE
+   =========================================================================== */
+const CONFIG = {
+  storageKey: 'error5_save_v1',
+
+  /* ---- PLAYERS (text taken from the ERROR 5.0 PDF — do not invent more) ---- */
+  players: [
+    { id:'abdo', num:'1.0', name:'ABDO', nickname:'THE EXPLORER', color:'#39ff7a',
+      sprite:'assets/players/abdo.png',
+      description:'CURIOUS BY NATURE, LOVES LEARNING NEW THINGS, CAN TALK ABOUT ALMOST ANYTHING, AND IS ALWAYS READY TO HELP OR JOIN A NEW ADVENTURE!',
+      strengths:['CURIOUS MIND','ALL-ROUNDER','TEAM PLAYER','NO SLEEP NEEDED'],
+      power:'knowledge' },
+    { id:'rayan', num:'2.0', name:'RAYAN', nickname:'THE DIRECTOR', color:'#4db8ff',
+      sprite:'assets/players/rayan.png',
+      description:'OBSESSED WITH MOVIES, CINEMA, THEATRE, AND MUSIC. LOVES CREATING EXPERIENCES, PAYING ATTENTION TO DETAILS, AND TURNING SIMPLE IDEAS INTO SOMETHING UNFORGETTABLE.',
+      strengths:['CREATIVE MIND','ATTENTION TO DETAIL','MUSIC LOVER','THE ORGANIZER'],
+      power:'director' },
+    { id:'faizal', num:'3.0', name:'FAIZAL', nickname:'THE GHOST', color:'#b77dff',
+      sprite:'assets/players/faizal.png',
+      description:"A FRESH GRADUATE WHO LOVES SLEEPING, RANDOM ADVENTURES, AND ENDLESS CONVERSATIONS. ALWAYS CURIOUS ABOUT NEW THINGS, BUT NOBODY KNOWS WHAT HE'S GOING TO DO NEXT.",
+      strengths:['RANDOM ENERGY','OPEN TO ANYTHING','NIGHT OWL','SOCIAL BUTTERFLY'],
+      power:'ghost' },
+    { id:'hunter', num:'4.0', name:'GOOD HUNTER', nickname:'THE MASTER PLANNER', color:'#ffd23f',
+      sprite:'assets/players/good-hunter.png',
+      description:"NEVER LIKES STAYING HOME. LOVES TV SERIES, AND GAMES. A PEACEFUL PERSON WHO GETS ALONG WITH EVERYONE, AS LONG AS THINGS GO ACCORDING TO PLAN. ONCE HE MAKES UP HIS MIND, THERE'S NO CHANGING IT!",
+      strengths:['MASTER PLANNER','PEACEKEEPER','DECISIVE MIND','PLAYSTATION ADDICT'],
+      power:'controller' },
+  ],
+
+  /* ---- SPECIAL POWERS ----
+     effect types:  'hint'  -> shows the current game's hint (KNOWLEDGE IS POWER)
+                    'block' -> pick one player; they can't use their power this game
+                    'swap'  -> pick two players; their powers are swapped this game
+                    'custom'-> shows `desc` as an announcement (host applies the rule)  */
+  powers: {
+    knowledge:  { name:'KNOWLEDGE IS POWER', icon:'📘', effect:'hint',
+                  desc:'CHOOSE ONE CATEGORY OR QUESTION AND GET ONE FREE HINT.' },
+    /* ✏️ RAYAN's power — the PDF names it "THE DIRECTOR" but doesn't explain its mechanics.
+       Edit `desc` (and optionally `effect`) once the group decides how it works.            */
+    director:   { name:'THE DIRECTOR', icon:'🎬', effect:'custom',
+                  desc:'[EDITABLE] THE DIRECTOR CALLS THE SHOT. (Mechanics not defined yet — edit CONFIG.powers.director in the code.)' },
+    ghost:      { name:'GHOST MODE', icon:'👻', effect:'block',
+                  desc:'CHOOSE ONE PLAYER AND MAKE THEM SKIP THEIR SPECIAL POWER FOR THAT GAME.' },
+    controller: { name:'GAME CONTROLLER', icon:'🎮', effect:'swap',
+                  desc:'CHOOSE TWO PLAYERS AND SWAP THEIR SPECIAL POWER.' },
+  },
+
+  /* ---- 2.0 MEMORY.EXE — put your video file in assets/memory/ ---- */
+  memory: {
+    video: 'assets/memory/last-year.mp4',   // or an https:// link to an .mp4/.webm file
+    poster: '',                              // optional image shown before playing
+  },
+
+  /* ---- 3.0 ERROR ON THE STREET — add as many as you like ---- */
+  street: {
+    questions: [
+      'What is your secret talent that nobody asked about?',
+      'Describe this group in ONE word.',
+      'What would you do with a million riyals?',
+      'Who is most likely to be late tonight?',
+      'What is your official excuse for being late?',
+      'If this group was a video game, what genre would it be?',
+      'What is the most useless skill you have?',
+      'If you could delete one day from the last five years, which one?',
+      'What is your villain origin story?',
+      'Rate your sleep schedule from 1 to 10.',
+      'What would your autobiography be called?',
+      'Which player would survive longest in a zombie apocalypse?',
+      'What is your go-to karaoke song?',
+      'What is the first thing you would buy with your next salary?',
+      'Who in the group gives the worst advice?',
+      'If you were a Disney character, who would you be?',
+    ],
+    answers: [
+      'ERROR 404: ANSWER NOT FOUND.',
+      'Honestly? Shawarma.',
+      'I plead the fifth.',
+      'That information is classified.',
+      'Ask my lawyer.',
+      'Only on weekends.',
+      'Because I am the main character.',
+      'Bro… I just woke up.',
+      'Next question, please.',
+      'My mom said I am special.',
+      'Definitely the PlayStation.',
+      'It was like that when I got here.',
+      'I will answer in the group chat. Maybe.',
+      'Five years and you still have to ask?',
+      'No comment. *walks away dramatically*',
+      'That is a trap question.',
+      'Loading… loading… still loading…',
+      'Can we cut this part out of the video?',
+    ],
+    /* random system messages shown during the show */
+    glitches: [
+      'SYSTEM: SARCASM LEVEL EXCEEDED',
+      'WARNING: TRUTH NOT DETECTED',
+      'SYSTEM: ANSWER SENT TO GROUP CHAT ✔',
+      'ERROR: LOGIC.EXE STOPPED RESPONDING',
+      'SYSTEM: THIS CLIP WILL BE USED AGAINST YOU',
+      'ALERT: RAM FULL OF NONSENSE',
+      'SYSTEM: AUDIENCE IS CONFUSED',
+      'NOTICE: REPORTER REQUESTS A RAISE',
+    ],
+  },
+
+  /* ---- 4.0 SONG DETECTIVE — unlimited songs ----
+     These are EXAMPLE SLOTS. Drop your real mp3 files in assets/songs/ using these names,
+     or change `src` (an https:// link to an mp3 also works) and fill in the real title/artist.
+     start = second to start from · clip = how many seconds to play · hint = for KNOWLEDGE IS POWER */
+  songs: [
+    { title:'SONG TITLE #1 (edit me)', artist:'ARTIST NAME', src:'assets/songs/song-01.mp3', start:0, clip:10, hint:'' },
+    { title:'SONG TITLE #2 (edit me)', artist:'ARTIST NAME', src:'assets/songs/song-02.mp3', start:0, clip:10, hint:'' },
+    { title:'SONG TITLE #3 (edit me)', artist:'ARTIST NAME', src:'assets/songs/song-03.mp3', start:0, clip:10, hint:'' },
+    { title:'SONG TITLE #4 (edit me)', artist:'ARTIST NAME', src:'assets/songs/song-04.mp3', start:0, clip:10, hint:'' },
+    { title:'SONG TITLE #5 (edit me)', artist:'ARTIST NAME', src:'assets/songs/song-05.mp3', start:0, clip:10, hint:'' },
+  ],
+  songTimer: 20,   // seconds to guess
+  songPoints: 10,
+
+  /* ---- 6.0 WHO'S THAT?! — images from the ERROR 5.0 PDF (assets/whos-that/) ----
+     Replace `img` with any local path or https:// image link. The name is only shown on REVEAL. */
+  whosThat: [
+    { name:'NEMO',    movie:'Finding Nemo',     img:'assets/whos-that/nemo.png' },
+    { name:'ABU',     movie:'Aladdin',          img:'assets/whos-that/abu.png' },
+    { name:'LOTSO',   movie:'Toy Story 3',      img:'assets/whos-that/lotso.png' },
+    { name:'BRUNO',   movie:'Encanto',          img:'assets/whos-that/bruno.png' },
+    { name:'RANDALL', movie:'Monsters, Inc.',   img:'assets/whos-that/randall.png' },
+    { name:'ROZ',     movie:'Monsters, Inc.',   img:'assets/whos-that/roz.png' },
+    { name:'REX',     movie:'Toy Story',        img:'assets/whos-that/rex.png' },
+    { name:'JESSIE',  movie:'Toy Story 2',      img:'assets/whos-that/jessie.png' },
+    { name:'MEGARA',  movie:'Hercules',         img:'assets/whos-that/megara.png' },
+    { name:'KEN',     movie:'Toy Story 3',      img:'assets/whos-that/ken.png' },
+  ],
+  whosTimer: 20,
+  whosPoints: 10,
+
+  /* ---- 7.0 SEEN JEEM — level: 1 easy, 2 medium, 3 hard (points = level × 10) ----
+     choices: 4 options · answer: index of the correct choice (0-3)
+     accept: extra spellings accepted when typing the answer manually            */
+  seenJeem: {
+    categories: ['جغرافيا','رياضة','أفلام','علوم','ألعاب فيديو','منوعات'],
+    timerByLevel: {1:20, 2:30, 3:40},
+    questions: [
+      { cat:'جغرافيا', level:1, q:'ما هي عاصمة اليابان؟', choices:['طوكيو','أوساكا','كيوتو','سيول'], answer:0, accept:['tokyo'], hint:'تبدأ بحرف الطاء' },
+      { cat:'جغرافيا', level:2, q:'ما هو أطول نهر في العالم حسب أغلب المصادر؟', choices:['الأمازون','النيل','المسيسيبي','الفرات'], answer:1, accept:['nile','نهر النيل'], hint:'يمر بمصر' },
+      { cat:'جغرافيا', level:3, q:'ما هي أصغر دولة في العالم من حيث المساحة؟', choices:['موناكو','سان مارينو','الفاتيكان','مالطا'], answer:2, accept:['vatican','دولة الفاتيكان'], hint:'تقع داخل مدينة روما' },
+      { cat:'رياضة', level:1, q:'كم عدد لاعبي فريق كرة القدم داخل الملعب؟', choices:['10','11','9','12'], answer:1, accept:['احد عشر','أحد عشر','eleven'], hint:'أكثر من 10' },
+      { cat:'رياضة', level:2, q:'في أي دولة أقيمت بطولة كأس العالم 2022؟', choices:['روسيا','البرازيل','قطر','ألمانيا'], answer:2, accept:['qatar'], hint:'دولة خليجية' },
+      { cat:'رياضة', level:3, q:'كم مرة فازت البرازيل بكأس العالم لكرة القدم؟', choices:['4','5','3','6'], answer:1, accept:['خمس','خمسة','five'], hint:'عدد أصابع اليد' },
+      { cat:'أفلام', level:1, q:'ما اسم الأسد الصغير في فيلم The Lion King؟', choices:['سكار','موفاسا','سيمبا','نالا'], answer:2, accept:['simba'], hint:'يبدأ بحرف السين' },
+      { cat:'أفلام', level:2, q:'من هو مخرج فيلم Inception؟', choices:['ستيفن سبيلبرغ','كريستوفر نولان','جيمس كاميرون','ريدلي سكوت'], answer:1, accept:['نولان','christopher nolan','nolan'], hint:'أخرج أيضاً Interstellar' },
+      { cat:'أفلام', level:3, q:'ما هو أول فيلم رسوم متحركة طويل من إنتاج بيكسار؟', choices:['Finding Nemo','Monsters, Inc.','Cars','Toy Story'], answer:3, accept:['toy story','توي ستوري','حكاية لعبة'], hint:'صدر عام 1995' },
+      { cat:'علوم', level:1, q:'ما هو الكوكب الأقرب إلى الشمس؟', choices:['الزهرة','عطارد','المريخ','الأرض'], answer:1, accept:['mercury'], hint:'يبدأ بحرف العين' },
+      { cat:'علوم', level:2, q:'ما هو الرمز الكيميائي للذهب؟', choices:['Ag','Gd','Au','Go'], answer:2, accept:['au'], hint:'من الكلمة اللاتينية Aurum' },
+      { cat:'علوم', level:3, q:'كم عدد عظام جسم الإنسان البالغ؟', choices:['201','206','212','196'], answer:1, accept:['two hundred six'], hint:'أكثر من 200 بقليل' },
+      { cat:'ألعاب فيديو', level:1, q:'ما هي الشركة المصنعة لجهاز بلايستيشن؟', choices:['مايكروسوفت','نينتندو','سوني','سيغا'], answer:2, accept:['sony'], hint:'شركة يابانية' },
+      { cat:'ألعاب فيديو', level:2, q:'ما اسم شقيق ماريو الذي يرتدي اللون الأخضر؟', choices:['واريو','يوشي','لويجي','تود'], answer:2, accept:['luigi','لويچي'], hint:'يبدأ بحرف اللام' },
+      { cat:'ألعاب فيديو', level:3, q:'في أي سنة صدر أول جهاز بلايستيشن في اليابان؟', choices:['1992','1994','1996','1998'], answer:1, accept:[], hint:'قبل منتصف التسعينات بقليل' },
+      { cat:'منوعات', level:1, q:'كم عدد أيام السنة الكبيسة؟', choices:['365','364','366','367'], answer:2, accept:[], hint:'فبراير فيها 29 يوماً' },
+      { cat:'منوعات', level:2, q:'ما هو أكبر محيط في العالم؟', choices:['الأطلسي','الهادئ','الهندي','المتجمد الشمالي'], answer:1, accept:['المحيط الهادئ','الهادي','pacific'], hint:'يقع بين آسيا والأمريكتين' },
+      { cat:'منوعات', level:3, q:'كم عدد الدول الأعضاء في الأمم المتحدة من قارة أفريقيا؟', choices:['48','50','54','60'], answer:2, accept:[], hint:'بين 50 و 55' },
+    ],
+  },
+
+  /* ---- 8.0 ALL THE ROLES ---- */
+  roles: [
+    { name:'THE JUDGE',      desc:'Settles every argument this round. Decisions are final.' },
+    { name:'THE NARRATOR',   desc:'Narrates everything like a nature documentary.' },
+    { name:'THE MIME',       desc:'Gestures only until the next round. No words!' },
+    { name:'THE ECHO',       desc:'Repeats the last word of everyone’s sentence.' },
+    { name:'THE HYPE MAN',   desc:'Cheers loudly for every single answer.' },
+    { name:'THE ROBOT',      desc:'Speaks only in a robot voice. BEEP BOOP.' },
+    { name:'THE DETECTIVE',  desc:'Asks “are you sure?” after every answer.' },
+    { name:'THE CRITIC',     desc:'Rates everything that happens out of 10.' },
+    { name:'THE TIMEKEEPER', desc:'Announces the time every 2 minutes. Seriously.' },
+    { name:'THE BODYGUARD',  desc:'Must stand next to another player at all times.' },
+  ],
+  challenges: [
+    'Do your best impression of another player — the group guesses who.',
+    'Speak only in questions for 60 seconds.',
+    'Tell the story of your week in exactly 5 words.',
+    'Hum a song — the group has to guess it.',
+    'Keep a straight face for 30 seconds while everyone tries to make you laugh.',
+    'Describe a movie without saying its name — 60 seconds.',
+    'Strike your best victory pose and hold it for 15 seconds.',
+    'Give a 30-second motivational speech about sleeping.',
+    'Name 5 PlayStation games in 15 seconds.',
+    'Explain the rules of any game to the group like a TV announcer.',
+  ],
+  challengeTimer: 60,
+  challengePoints: 15,
+
+  /* ---- 9.0 THE HUMAN DATABASE ----
+     Quiz questions are generated automatically from the player data above.
+     Add your own: { q:'…question…', answer:'abdo' }  (answer = player id)          */
+  humanDb: { extra: [] },
+
+  /* ---- 10.0 GUESS THE LEGEND ----
+     Clues go from hardest to easiest. Add legendary moments of your own group too, e.g.
+     { answer:'THE NIGHT WE GOT LOST', clues:['clue 1','clue 2','clue 3'] }                  */
+  legends: [
+    { answer:'SUPER MARIO', clues:['Has been jumping since the 1980s.','Plumber by profession.','Red cap with the letter M — brother of Luigi.'] },
+    { answer:'KRATOS', clues:['A Spartan warrior with a very bad temper.','Took on the gods of Olympus, then moved north.','God of War — father of Atreus.'] },
+    { answer:'LIONEL MESSI', clues:['Left-footed and spent most of his career at one club.','Holds a record number of Ballon d’Or awards.','Lifted the 2022 World Cup as Argentina’s captain.'] },
+    { answer:'SHERLOCK HOLMES', clues:['Plays the violin when thinking.','Lives at 221B Baker Street.','The detective partner of Dr. Watson.'] },
+    { answer:'PIKACHU', clues:['Doesn’t like being inside a ball.','Electric type.','Ash’s yellow partner.'] },
+    { answer:'BATMAN', clues:['Billionaire by day.','Protects Gotham City.','Bruce Wayne’s secret identity.'] },
+    { answer:'DARTH VADER', clues:['Breathes very loudly.','Wears black armor and a cape.','“I am your father.”'] },
+  ],
+  legendTimer: 45,
+  legendPoints: [30, 20, 10],   // points per number of clues shown
+};
+
+/* ===========================================================================
+   SECTIONS (order = progression)
+   =========================================================================== */
+const SECTIONS = [
+  { id:'welcome',      num:'1.0',  title:'SYSTEM WELCOMING' },
+  { id:'players',      num:'1.0',  title:'CHOOSE YOUR PLAYER' },
+  { id:'memory',       num:'2.0',  title:'MEMORY.EXE' },
+  { id:'street',       num:'3.0',  title:'ERROR ON THE STREET' },
+  { id:'song',         num:'4.0',  title:'SONG DETECTIVE' },
+  { id:'levelup',      num:'5.0',  title:'LEVEL UP!' },
+  { id:'whos',         num:'6.0',  title:"WHO'S THAT?!" },
+  { id:'seenjeem',     num:'7.0',  title:'SEEN JEEM' },
+  { id:'roles',        num:'8.0',  title:'ALL THE ROLES' },
+  { id:'database',     num:'9.0',  title:'THE HUMAN DATABASE' },
+  { id:'legend',       num:'10.0', title:'GUESS THE LEGEND' },
+  { id:'achievements', num:'11.0', title:'ACHIEVEMENT UNLOCKED!' },
+  { id:'gameover',     num:'∞',    title:'GAME OVER!' },
+];
+const GAME_NAMES = { street:'STREET', song:'SONG', whos:"WHO'S THAT", seenjeem:'SEEN JEEM', roles:'ROLES', database:'DATABASE', legend:'LEGEND', bonus:'BONUS' };
+
+/* ===========================================================================
+   ACHIEVEMENTS — `test(stats, score)` runs after every point change.
+   `only` limits a badge to a single player. `manual` badges are unlocked by events.
+   =========================================================================== */
+const BADGES = [
+  { id:'first',    icon:'⭐', name:'FIRST POINTS',     desc:'Score your first points',            test:(s,sc)=>sc>0 },
+  { id:'fifty',    icon:'🥈', name:'HALF CENTURY',     desc:'Reach 50 points',                    test:(s,sc)=>sc>=50 },
+  { id:'hundred',  icon:'🥇', name:'CENTURY',          desc:'Reach 100 points',                   test:(s,sc)=>sc>=100 },
+  { id:'street',   icon:'🎤', name:'STREET STAR',      desc:'Win BEST ANSWER on the street',      test:s=>s.street>=1 },
+  { id:'song',     icon:'🎵', name:'SONG DETECTIVE',   desc:'Guess a song first',                 test:s=>s.song>=1 },
+  { id:'dj',       icon:'💿', name:'HUMAN SHAZAM',     desc:'Guess 3 songs',                      test:s=>s.song>=3 },
+  { id:'whos',     icon:'🐠', name:'DISNEY EXPERT',    desc:"Guess a WHO'S THAT character",       test:s=>s.whos>=1 },
+  { id:'whos5',    icon:'🏰', name:'PIXAR PROFESSOR',  desc:'Guess 5 characters',                 test:s=>s.whos>=5 },
+  { id:'sj',       icon:'📚', name:'SEEN JEEM SCHOLAR',desc:'Answer 3 Seen Jeem questions',       test:s=>s.seenjeem>=3 },
+  { id:'roles',    icon:'🎭', name:'CHALLENGE ACCEPTED',desc:'Complete a challenge',             test:s=>s.roles>=1 },
+  { id:'db',       icon:'💾', name:'HUMAN DATABASE',   desc:'Answer 3 database questions',        test:s=>s.database>=3 },
+  { id:'legend',   icon:'🏛', name:'LEGEND HUNTER',    desc:'Guess a legend',                     test:s=>s.legend>=1 },
+  { id:'power',    icon:'⚡', name:'POWER USER',       desc:'Use a special power',                test:s=>s.powers>=1 },
+  { id:'ghosted',  icon:'👻', name:'GHOSTED',          desc:'Get blocked by GHOST MODE',          test:s=>s.ghosted>=1 },
+  { id:'graduated',icon:'🎓', name:'BOSS DEFEATED: UNIVERSITY',   desc:'LEVEL COMPLETE: 100%', only:'faizal', manual:true },
+  { id:'employed', icon:'💼', name:'BOSS DEFEATED: UNEMPLOYMENT', desc:'CAREER MODE ACTIVATED', only:'abdo', manual:true },
+  { id:'mvp',      icon:'👑', name:'MVP',              desc:'Finish #1 on the leaderboard',       manual:true },
+];
+
+/* ===========================================================================
+   HELPERS
+   =========================================================================== */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rand = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const P = id => CONFIG.players.find(p => p.id === id);
+const fmtT = t => { t = Math.max(0, Math.floor(t||0)); return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); };
+
+/* Player sprite <img> with an automatic placeholder if the file is missing */
+function spriteHTML(p, cls=''){
+  const ini = esc(p.name.split(' ').map(w=>w[0]).join(''));
+  return `<img class="${cls}" src="${esc(p.sprite)}" alt="${esc(p.name)}" onerror="this.outerHTML='<div class=&quot;ph ${cls}&quot;>${ini}</div>'">`;
+}
+
+/* ShuffleBag: random picks without repeating until the bag empties,
+   and never the same item twice in a row across refills. */
+class ShuffleBag {
+  constructor(items){ this.items = items; this.bag = []; this.last = null; }
+  next(){
+    if (!this.items.length) return null;
+    if (!this.bag.length){ this.bag = shuffle(this.items); if (this.items.length>1 && this.bag[this.bag.length-1]===this.last) this.bag.unshift(this.bag.pop()); }
+    this.last = this.bag.pop(); return this.last;
+  }
+}
+
+/* ===========================================================================
+   SAVE STATE (LocalStorage)
+   =========================================================================== */
+const ids = () => CONFIG.players.map(p => p.id);
+const zeroStats = () => ({ street:0, song:0, whos:0, seenjeem:0, roles:0, database:0, legend:0, powers:0, ghosted:0 });
+function freshState(){
+  const s = { scores:{}, stats:{}, badges:{}, log:[], visited:[], current:null, muted:false, rounds:{}, participants:{}, games:{} };
+  ids().forEach(id => { s.scores[id]=0; s.stats[id]=zeroStats(); s.badges[id]=[]; });
+  return s;
+}
+let S = freshState();
+function load(){
+  try {
+    const raw = localStorage.getItem(CONFIG.storageKey);
+    if (raw){ const d = JSON.parse(raw); S = Object.assign(freshState(), d);
+      ids().forEach(id => { S.scores[id] ??= 0; S.stats[id] = Object.assign(zeroStats(), S.stats[id]||{}); S.badges[id] ??= []; }); }
+  } catch(e){ console.warn('Save file corrupted — starting fresh', e); S = freshState(); }
+}
+function save(){ try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(S)); } catch(e){} }
+let HAD_SAVE = false;
+const hasSave = () => HAD_SAVE;
+
+/* ===========================================================================
+   SOUND — tiny 8-bit synth with WebAudio (no files needed). Mute is saved.
+   =========================================================================== */
+const SFX = {
+  ctx:null,
+  init(){ if (!this.ctx){ try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (this.ctx && this.ctx.state==='suspended') this.ctx.resume(); },
+  tone(f, d=.1, type='square', v=.06, when=0, slideTo=null){
+    if (S.muted || !this.ctx) return;
+    const t = this.ctx.currentTime + when, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t+d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t+d);
+    o.connect(g).connect(this.ctx.destination); o.start(t); o.stop(t+d+.02);
+  },
+  noise(d=.2, v=.05){
+    if (S.muted || !this.ctx) return;
+    const b = this.ctx.createBuffer(1, this.ctx.sampleRate*d, this.ctx.sampleRate), c = b.getChannelData(0);
+    for (let i=0;i<c.length;i++) c[i] = (Math.random()*2-1) * (1-i/c.length);
+    const s = this.ctx.createBufferSource(), g = this.ctx.createGain(); g.gain.value = v; s.buffer=b; s.connect(g).connect(this.ctx.destination); s.start();
+  },
+  click(){ this.tone(740,.05,'square',.04); },
+  nav(){ this.tone(440,.06); this.tone(880,.08,'square',.05,.06); },
+  coin(){ this.tone(988,.07,'square',.06); this.tone(1319,.3,'square',.06,.07); },
+  ok(){ [523,659,784,1047].forEach((f,i)=>this.tone(f,.12,'square',.05,i*.08)); },
+  bad(){ this.tone(220,.35,'sawtooth',.06,0,70); },
+  tick(){ this.tone(1200,.03,'square',.03); },
+  buzz(){ this.tone(140,.6,'sawtooth',.07); this.tone(147,.6,'square',.04); },
+  power(){ [300,450,600,900,1200].forEach((f,i)=>this.tone(f,.1,'triangle',.07,i*.05)); },
+  glitch(){ this.noise(.18,.05); this.tone(90,.15,'sawtooth',.04); },
+  fanfare(){ [[523,0],[523,.12],[523,.24],[659,.36],[784,.6],[659,.8],[784,.92],[1047,1.1]].forEach(([f,w])=>this.tone(f,.22,'square',.06,w)); },
+  achievement(){ [784,988,1175,1568].forEach((f,i)=>this.tone(f,.15,'triangle',.08,i*.09)); },
+  laugh(){ for(let i=0;i<5;i++) this.tone(500-i*40,.09,'triangle',.05,i*.11,380-i*40); },
+};
+/* Celebration music: an original looping chiptune melody (generated, not a song file) */
+const Music = {
+  timer:null,
+  melody:[659,784,1047,784,880,1047,1319,1047,1175,988,784,988,1047,0,1047,0],
+  bass:[131,131,196,196,175,175,196,196],
+  start(){ if (this.timer) return; SFX.init(); let i=0;
+    this.timer = setInterval(()=>{ const m=this.melody[i%this.melody.length]; if(m) SFX.tone(m,.16,'square',.035); if(i%2===0) SFX.tone(this.bass[(i/2)%this.bass.length],.25,'triangle',.06); i++; }, 170); },
+  stop(){ clearInterval(this.timer); this.timer=null; },
+  get on(){ return !!this.timer; }
+};
+
+/* ===========================================================================
+   UI: toasts, flash, modal, fireworks, achievement popup
+   =========================================================================== */
+function toast(msg, kind='', title='SYSTEM'){
+  const t = document.createElement('div'); t.className = 'toast '+kind;
+  t.innerHTML = `<b>&gt; ${esc(title)}</b>${esc(msg)}`; $('#toasts').prepend(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 3600);
+  while ($('#toasts').children.length > 4) $('#toasts').lastChild.remove();
+}
+function flash(){ const f=$('#flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); }
+function shake(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+function openModal(html, wide=false){ $('#modalBody').innerHTML = html; $('#modalBox').classList.toggle('wide', wide); $('#modal').classList.add('open'); }
+function closeModal(){ $('#modal').classList.remove('open'); if (modalResolve){ const r=modalResolve; modalResolve=null; r(null); } }
+let modalResolve = null;
+
+/* Ask the host to pick N players (used by GHOST MODE and GAME CONTROLLER) */
+function pickPlayers({ title, text, count=1, exclude=[] }){
+  return new Promise(res => {
+    modalResolve = res; let picked = [];
+    const list = CONFIG.players.filter(p => !exclude.includes(p.id));
+    openModal(`<div class="px" style="font-size:13px;color:var(--purple)">${esc(title)}</div><p class="mt">${esc(text)}</p>
+      <div class="dbChoices" id="pkList">${list.map(p=>`<button class="dbChoice" data-id="${p.id}">${spriteHTML(p)}${esc(p.name)}</button>`).join('')}</div>
+      <div class="row center mt2"><button class="btn green" id="pkOk" disabled>CONFIRM</button></div>`);
+    $$('#pkList .dbChoice').forEach(b => b.onclick = () => {
+      SFX.click(); const id=b.dataset.id;
+      if (picked.includes(id)) picked = picked.filter(x=>x!==id); else { picked.push(id); if (picked.length>count) picked.shift(); }
+      $$('#pkList .dbChoice').forEach(x => x.classList.toggle('right', picked.includes(x.dataset.id)));
+      $('#pkOk').disabled = picked.length !== count;
+    });
+    $('#pkOk').onclick = () => { const r=modalResolve; modalResolve=null; $('#modal').classList.remove('open'); r(picked); };
+  });
+}
+
+/* Fireworks — pixel particles on a full-screen canvas */
+const FX = (() => {
+  const c = $('#fx'), x = c.getContext('2d'); let parts = [], raf = null;
+  const size = () => { c.width = innerWidth; c.height = innerHeight; }; size(); addEventListener('resize', size);
+  const cols = ['#39ff7a','#ffd23f','#ff4d5e','#4db8ff','#b77dff','#ffffff','#ff9a3c'];
+  function burst(px, py){
+    const col = rand(cols), n = 46;
+    for (let i=0;i<n;i++){ const a = Math.PI*2*i/n, sp = 2+Math.random()*4; parts.push({x:px,y:py,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:60+Math.random()*30,col}); }
+    SFX.noise(.25,.04);
+    if (!raf) loop();
+  }
+  function loop(){
+    x.clearRect(0,0,c.width,c.height);
+    parts.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=.06; p.vx*=.985; p.life--; x.globalAlpha=Math.max(0,p.life/80); x.fillStyle=p.col; x.fillRect(Math.round(p.x/4)*4,Math.round(p.y/4)*4,5,5); });
+    parts = parts.filter(p => p.life>0); x.globalAlpha=1;
+    raf = parts.length ? requestAnimationFrame(loop) : (x.clearRect(0,0,c.width,c.height), null);
+  }
+  function show(n=8, ms=2600){ for (let i=0;i<n;i++) setTimeout(()=>burst(innerWidth*(.15+Math.random()*.7), innerHeight*(.15+Math.random()*.4)), i*(ms/n)); }
+  return { burst, show };
+})();
+
+let achQueue = [], achBusy = false;
+function achievementPopup(txt, icon){
+  achQueue.push([txt,icon]); if (achBusy) return;
+  const run = () => { const it = achQueue.shift(); if (!it){ achBusy=false; return; } achBusy=true;
+    $('#achPopTxt').textContent = it[0]; $('#achPop .ic').textContent = it[1]; $('#achPop').classList.add('show'); SFX.achievement();
+    setTimeout(()=>{ $('#achPop').classList.remove('show'); setTimeout(run, 450); }, 2600); };
+  run();
+}
+
+/* ===========================================================================
+   SCORING + LEADERBOARD + ACHIEVEMENTS (shared by all games)
+   =========================================================================== */
+function addPoints(pid, pts, reason, game='bonus', statKey=null){
+  S.scores[pid] = (S.scores[pid]||0) + pts;
+  S.log.push({ pid, pts, reason, game, stat:statKey, t:Date.now() });
+  if (statKey) S.stats[pid][statKey]++;
+  save(); renderBoards(); checkBadges(pid);
+  const m = $(`.mini[data-id="${pid}"]`); if (m){ m.classList.remove('bump'); void m.offsetWidth; m.classList.add('bump'); setTimeout(()=>m.classList.remove('bump'),400); }
+  if (pts > 0){ SFX.coin(); toast(`${P(pid).name} +${pts} — ${reason}`, 'gold', 'SCORE'); }
+  else toast(`${P(pid).name} ${pts} — ${reason}`, 'err', 'SCORE');
+}
+function undoLast(){
+  const e = S.log.pop(); if (!e){ toast('NOTHING TO UNDO', 'err'); return; }
+  S.scores[e.pid] -= e.pts; if (e.stat) S.stats[e.pid][e.stat] = Math.max(0, S.stats[e.pid][e.stat]-1);
+  save(); renderBoards(); toast(`UNDONE: ${P(e.pid).name} ${e.pts>0?'+':''}${e.pts}`, 'err');
+}
+function unlock(pid, bid){
+  if (S.badges[pid].includes(bid)) return false;
+  S.badges[pid].push(bid); save();
+  const b = BADGES.find(x=>x.id===bid); achievementPopup(`${P(pid).name}: ${b.name}`, b.icon);
+  if (cur()==='achievements') renderAchievements();
+  return true;
+}
+function checkBadges(pid){ BADGES.forEach(b => { if (b.manual || (b.only && b.only!==pid)) return; if (b.test(S.stats[pid], S.scores[pid])) unlock(pid, b.id); }); }
+const ranking = () => [...CONFIG.players].sort((a,b) => S.scores[b.id]-S.scores[a.id]);
+
+function renderBoards(){
+  const r = ranking(), top = S.scores[r[0].id];
+  $('#miniBoard').innerHTML = CONFIG.players.map(p => `<div class="mini ${S.scores[p.id]===top && top>0?'lead':''}" data-id="${p.id}" title="${esc(p.name)}">${spriteHTML(p)}<span>${S.scores[p.id]}</span></div>`).join('');
+  $('#lbRows').innerHTML = r.map((p,i) => `<div class="lbRow ${i===0&&top>0?'first':''}"><span class="rk">#${i+1}</span>${spriteHTML(p)}<span class="nm">${esc(p.name)}<br><span class="muted" style="font-size:8px">${esc(p.nickname)} · ${S.badges[p.id].length} 🏅</span></span><span class="sc">${S.scores[p.id]}</span>
+    <span class="adj"><button data-adj="${p.id}" data-v="1" title="+1">+</button><button data-adj="${p.id}" data-v="-1" title="-1">−</button></span></div>`).join('');
+  $('#lbLog').innerHTML = S.log.slice(-12).reverse().map(e => `<div>${esc(P(e.pid)?.name)} <b style="color:${e.pts>0?'var(--green)':'var(--red)'}">${e.pts>0?'+':''}${e.pts}</b> · ${esc(e.reason)}</div>`).join('') || '<div>No points yet. The game awaits…</div>';
+}
+
+/* ===========================================================================
+   PARTICIPANTS + POWER PHASE (rendered into every game section)
+   =========================================================================== */
+const parts = g => (S.participants[g] ??= ids());
+function renderParticipants(g){
+  const el = $(`.partBar[data-part="${g}"]`); if (!el) return;
+  el.innerHTML = `<span class="lbl">PLAYERS IN THIS GAME:</span>` + CONFIG.players.map(p => `<button class="pchip ${parts(g).includes(p.id)?'on':''}" data-pid="${p.id}">${spriteHTML(p)}${esc(p.name)}</button>`).join('');
+  $$('.pchip', el).forEach(b => b.onclick = () => {
+    SFX.click(); const id=b.dataset.pid, list=parts(g);
+    if (list.includes(id)){ if (list.length<=1){ toast('AT LEAST ONE PLAYER REQUIRED','err'); return; } S.participants[g]=list.filter(x=>x!==id); }
+    else S.participants[g]=[...list,id];
+    save(); renderParticipants(g); renderPower(g); CTRL[g]?.onParticipants?.();
+  });
+}
+/* Award buttons: "WHO GOT IT FIRST?" */
+function renderAward(el, g, pts, reason, stat, after){
+  el.innerHTML = `<span class="lbl">🏁 WHO GOT IT FIRST? (+${pts})</span>` + parts(g).map(id => `<button class="btn sm green" data-aw="${id}">+${pts} ${esc(P(id).name)}</button>`).join('');
+  $$('[data-aw]', el).forEach(b => b.onclick = () => { addPoints(b.dataset.aw, pts, reason, g, stat); after && after(b.dataset.aw); });
+}
+
+const round = g => (S.rounds[g] ??= { abil:Object.fromEntries(CONFIG.players.map(p=>[p.id,p.power])), used:{}, blocked:{} });
+const HINTS = {};   // each game registers HINTS[game] = () => hint string or null
+function renderPower(g){
+  const el = $(`.powerphase[data-power="${g}"]`); if (!el) return;
+  const r = round(g), wasOpen = el.open;
+  el.innerHTML = `<summary>⚡ POWER PHASE — USE YOUR POWER BEFORE THE GAME BEGINS ▾</summary><div class="pp-body"><div class="pp-grid">` +
+    CONFIG.players.map(p => { const pw = CONFIG.powers[r.abil[p.id]], inGame = parts(g).includes(p.id);
+      const st = !inGame ? 'NOT PLAYING' : r.blocked[p.id] ? '👻 BLOCKED BY GHOST MODE' : r.used[p.id] ? '✔ USED' : 'READY';
+      return `<div class="pp ${r.blocked[p.id]?'blocked':''} ${r.used[p.id]?'used':''} ${inGame?'':'off'}"><span class="who">${esc(p.name)}</span><span class="pw">${pw.icon} ${esc(pw.name)}${r.abil[p.id]!==p.power?' (SWAPPED)':''}</span><span class="st">${st}</span>
+        <button class="btn sm purple" data-use="${p.id}" ${(!inGame||r.blocked[p.id]||r.used[p.id])?'disabled':''}>USE</button></div>`; }).join('') +
+    `</div><div class="row mt"><button class="btn sm" data-newround>↺ NEW ROUND (RESET POWERS)</button><span class="muted" style="font-size:17px">One use per player per game.</span></div></div>`;
+  el.open = wasOpen;
+  $$('[data-use]', el).forEach(b => b.onclick = () => usePower(g, b.dataset.use));
+  $('[data-newround]', el).onclick = () => { delete S.rounds[g]; save(); renderPower(g); toast('POWERS RESET FOR A NEW ROUND','power','POWER PHASE'); };
+}
+function powerBanner(pid, pw, text){
+  SFX.power(); flash();
+  openModal(`<div class="center" style="text-align:center"><div style="font-size:60px" class="pop">${pw.icon}</div>
+    <div class="px" style="font-size:12px;color:var(--gray)">${esc(P(pid).name)} ACTIVATED</div>
+    <div class="px mt" style="font-size:20px;color:var(--purple)">${esc(pw.name)}</div>
+    <p class="mt" style="font-size:24px">${esc(text)}</p><div class="row center mt2"><button class="btn green" data-close="modal">OK!</button></div></div>`);
+  toast(`${P(pid).name} USED ${pw.name}`, 'power', 'POWER ACTIVATED');
+}
+async function usePower(g, pid){
+  const r = round(g), key = r.abil[pid], pw = CONFIG.powers[key];
+  if (r.blocked[pid]){ SFX.bad(); toast('THIS PLAYER IS GHOSTED 👻','err'); return; }
+  if (r.used[pid]) return;
+  const finish = () => { r.used[pid]=true; S.stats[pid].powers++; save(); checkBadges(pid); renderPower(g); };
+  if (pw.effect === 'hint'){
+    const h = HINTS[g]?.();
+    if (!h){ SFX.bad(); toast('NO ACTIVE QUESTION — start a question/round first, then use the hint.','err','KNOWLEDGE IS POWER'); return; }
+    finish(); powerBanner(pid, pw, '💡 HINT: ' + h);
+  } else if (pw.effect === 'block'){
+    const t = await pickPlayers({ title:'👻 GHOST MODE', text:'Choose ONE player — they skip their special power for this game.', count:1, exclude:[pid] });
+    if (!t) return; r.blocked[t[0]] = true; S.stats[t[0]].ghosted++; checkBadges(t[0]); finish();
+    powerBanner(pid, pw, `${P(t[0]).name} CANNOT USE THEIR SPECIAL POWER IN THIS GAME!`);
+  } else if (pw.effect === 'swap'){
+    const t = await pickPlayers({ title:'🎮 GAME CONTROLLER', text:'Choose TWO players — their special powers will be swapped for this game.', count:2 });
+    if (!t) return; [r.abil[t[0]], r.abil[t[1]]] = [r.abil[t[1]], r.abil[t[0]]]; finish();
+    powerBanner(pid, pw, `${P(t[0]).name} ⇄ ${P(t[1]).name}: SPECIAL POWERS SWAPPED!`);
+  } else { finish(); powerBanner(pid, pw, pw.desc); }
+}
+
+/* ===========================================================================
+   TIMER component (pixel countdown bar with ticking + buzzer)
+   =========================================================================== */
+const TIMERS = [];
+class Timer {
+  constructor(el, seconds, onEnd){
+    this.el = el; this.total = this.left = seconds; this.onEnd = onEnd; this.id = null; TIMERS.push(this);
+    el.innerHTML = `<div class="timer"><span class="tnum"></span><div class="tbar"><i></i></div></div>`; this.render();
+  }
+  set(sec){ this.stop(); this.total = this.left = sec; this.render(); }
+  start(){ if (this.id || this.left<=0) return; this.last = performance.now(); this.id = setInterval(()=>this.tick(), 100); }
+  tick(){
+    const now = performance.now(); this.left = Math.max(0, this.left - (now-this.last)/1000); this.last = now;
+    const s = Math.ceil(this.left); if (s !== this._s){ this._s = s; if (s<=5 && s>0) SFX.tick(); }
+    this.render(); if (this.left <= 0){ this.stop(); SFX.buzz(); toast("TIME'S UP!", 'err', 'TIMER'); this.onEnd && this.onEnd(); }
+  }
+  stop(){ clearInterval(this.id); this.id = null; }
+  reset(){ this.stop(); this.left = this.total; this.render(); }
+  get running(){ return !!this.id; }
+  render(){ const w=$('.timer',this.el); w.classList.toggle('low', this.left<=5 && this.left>0); $('.tnum',this.el).textContent = Math.ceil(this.left); $('.tbar i',this.el).style.width = (this.left/this.total*100)+'%'; }
+}
+
+/* ===========================================================================
+   NAVIGATION + PROGRESS
+   =========================================================================== */
+const cur = () => S.current;
+const idx = () => SECTIONS.findIndex(s => s.id === S.current);
+function go(id, opts={}){
+  if (!SECTIONS.find(s=>s.id===id)) return;
+  const prev = S.current; if (prev && CTRL[prev]?.leave) CTRL[prev].leave();
+  TIMERS.forEach(t => t.stop());
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $('#s-'+id).classList.add('active'); $('#stage').scrollTop = 0;
+  S.current = id; if (!opts.noVisit && !S.visited.includes(id)) S.visited.push(id); save();
+  document.documentElement.style.setProperty('--accent', getComputedStyle($('#s-'+id)).getPropertyValue('--accent') || 'var(--green)');
+  updateProgress(); if (!opts.silent){ SFX.nav(); flash(); }
+  CTRL[id]?.enter?.();
+  if (Math.random() < .18 && !opts.silent) setTimeout(() => toast(rand(['LOADING NEXT LEVEL… DO NOT TURN OFF YOUR FRIENDSHIP','SAVING… DONE ✔','CHEAT CODES DISABLED FOR THIS LEVEL','FRIENDSHIP.DLL LOADED SUCCESSFULLY','WARNING: CHAOS LEVELS RISING','TIP: THE HOST IS ALWAYS RIGHT']), '', 'SYSTEM'), 700);
+}
+function updateProgress(){
+  const i = idx(), n = SECTIONS.length, pct = Math.round(S.visited.length/n*100);
+  $('#progTxt').textContent = `LV ${i+1}/${n}`; $('#progFill').style.width = pct+'%';
+  const s = SECTIONS[i]; $('#whereTxt').textContent = `${s.num} ${s.title}`;
+  $('#prevBtn').disabled = i<=0; $('#nextBtn').textContent = i>=n-1 ? '↻ RESTART' : 'NEXT ▶';
+  $('#menuProg').textContent = `PROGRESS: ${pct}% EXPLORED · ${S.visited.length}/${n} LEVELS VISITED`;
+  $('#menuList').innerHTML = SECTIONS.map((s,k) => `<button class="menuItem ${s.id===S.current?'cur':''}" data-goto="${s.id}"><span class="n">${s.num}</span><span class="t">${esc(s.title)}</span><span class="chk">${S.visited.includes(s.id)?'✔':''}</span></button>`).join('');
+}
+function next(){ const i = idx(); if (i < SECTIONS.length-1) go(SECTIONS[i+1].id); else go('welcome'); }
+function prev(){ const i = idx(); if (i > 0) go(SECTIONS[i-1].id); }
+
+/* ===========================================================================
+   SECTION CONTROLLERS
+   =========================================================================== */
+const CTRL = {};
+
+/* ---------- 1.0 WELCOME ---------- */
+CTRL.welcome = {
+  enter(){
+    $('#welcomeLineup').innerHTML = CONFIG.players.map((p,i) => `<div class="bob" style="animation-delay:${i*.2}s">${spriteHTML(p)}</div>`).join('');
+    const txt = `> CONNECTION ESTABLISHED.\n> WELCOME, PLAYERS.\n> 5 YEARS OF SAVE DATA FOUND.\n> 4 PLAYERS DETECTED: ${CONFIG.players.map(p=>p.name).join(', ')}.\n> WARNING: THIS SYSTEM CONTAINS MEMORIES, CHAOS & CHALLENGES.\n> PRESS NEXT TO CHOOSE YOUR PLAYER...`;
+    const el = $('#welcomeTyper'); el.textContent = ''; let i = 0; clearInterval(this.t);
+    this.t = setInterval(() => { el.textContent = txt.slice(0, ++i); if (i%3===0) SFX.tone(1400,.015,'square',.02); if (i>=txt.length) clearInterval(this.t); }, 28);
+  },
+  leave(){ clearInterval(this.t); }
+};
+
+/* ---------- CHARACTER SELECT + RPG SHEET ---------- */
+CTRL.players = {
+  enter(){
+    $('#playerCards').innerHTML = CONFIG.players.map(p => `<button class="pcard" style="--pc:${p.color}" data-sheet="${p.id}"><div class="pn">PLAYER ${p.num}</div><div class="sprite">${spriteHTML(p)}</div><div class="nm">[ ${esc(p.name)} ]</div><div class="nick">${esc(p.nickname)}</div><div class="cta blink">▶ CLICK TO VIEW</div></button>`).join('');
+    $$('[data-sheet]').forEach(b => { b.onclick = () => openSheet(b.dataset.sheet); b.onmouseenter = () => SFX.tone(520,.04,'square',.03); });
+  }
+};
+function openSheet(id){
+  const p = P(id), pw = CONFIG.powers[p.power]; SFX.coin();
+  openModal(`<div class="sheet" style="--accent:${p.color}"><div class="portrait">${spriteHTML(p)}</div><div>
+      <div class="tag" style="color:${p.color}">PLAYER ${p.num}</div>
+      <h2 class="mt">[ ${esc(p.name)} ]</h2><div class="px mt" style="font-size:12px;color:${p.color}">${esc(p.nickname)}</div>
+      <h3>DESCRIPTION:</h3><p style="font-size:22px">${esc(p.description)}</p>
+      <h3>STRENGTHS:</h3><div class="chips">${p.strengths.map(s=>`<span class="chip">★ ${esc(s)}</span>`).join('')}</div>
+      <h3>SPECIAL POWERS:</h3><div class="powerBox"><div class="pname">${pw.icon} ${esc(pw.name)}</div><div class="px mt" style="font-size:8px;color:var(--gray)">USE YOUR POWER BEFORE THE GAME BEGINS</div><p class="mt">${esc(pw.desc)}</p></div>
+    </div></div>`, true);
+}
+
+/* ---------- 2.0 MEMORY.EXE ---------- */
+CTRL.memory = {
+  init(){
+    const v = $('#memVideo'); this.v = v; this.ready = false; this.recovered = false;
+    v.addEventListener('loadedmetadata', () => { this.ready = true; this.updTime(); });
+    v.addEventListener('error', () => { this.ready = false; if (this.recovered) this.placeholder(); });
+    v.addEventListener('timeupdate', () => this.updTime());
+    v.addEventListener('play', () => { $('#memPlay').textContent = '⏸ PAUSE'; $('#memRec').classList.remove('hidden'); });
+    v.addEventListener('pause', () => { $('#memPlay').textContent = '▶ PLAY'; $('#memRec').classList.add('hidden'); });
+    v.addEventListener('click', () => this.toggle());
+    if (CONFIG.memory.poster) v.poster = CONFIG.memory.poster;
+    v.src = CONFIG.memory.video;
+    $('#memRecoverBtn').onclick = () => this.recover();
+    $('#memPlay').onclick = () => this.toggle();
+    $('#memMute').onclick = () => { v.muted = !v.muted; $('#memMute').textContent = v.muted ? '🔇' : '🔊'; };
+    $('#memFs').onclick = () => { const c = $('#cine'); if (document.fullscreenElement) document.exitFullscreen(); else (c.requestFullscreen||c.webkitRequestFullscreen||(()=>v.webkitEnterFullscreen?.())).call(c); };
+    $('#memSeek').onclick = e => { if (!this.ready || !v.duration) return; const r = e.currentTarget.getBoundingClientRect(); v.currentTime = (e.clientX-r.left)/r.width * v.duration; };
+    $('#memFile').onchange = e => { const f = e.target.files[0]; if (!f) return; v.src = URL.createObjectURL(f); this.ready=false; toast(`LOADED ${f.name} (this session only)`, '', 'MEMORY.EXE'); this.recover(true); };
+  },
+  recover(fast=false){
+    if (this.busy) return; this.busy = true; SFX.glitch();
+    $('#memPh').classList.add('hidden'); $('#memRecover').classList.remove('hidden');
+    const lines = $('#memLines'), bar = $('#memBar');
+    const steps = ['> SCANNING SECTOR 0x05 …','> FOUND: LAST_YEAR / TRIPS','> FOUND: LAST_YEAR / FUNNY_MOMENTS','> FOUND: LAST_YEAR / SHARED_MEMORIES','> REPAIRING CORRUPTED FRAMES …','> REBUILDING AUDIO TRACK …','> DECRYPTING INSIDE JOKES …','> RECOVERY COMPLETE ✔'];
+    lines.innerHTML = ''; let i = 0;
+    const iv = setInterval(() => {
+      if (i < steps.length){ const d=document.createElement('div'); d.textContent = steps[i]; lines.appendChild(d); bar.style.width = ((i+1)/steps.length*100)+'%'; SFX.tone(600+i*60,.05,'square',.04); i++; }
+      else { clearInterval(iv); this.busy = false; this.recovered = true;
+        setTimeout(() => { $('#memRecover').classList.add('hidden'); flash();
+          if (this.ready){ $('#cine').classList.remove('glitchIn'); void $('#cine').offsetWidth; $('#cine').classList.add('glitchIn'); $('#memPlay').disabled = false; SFX.ok(); toast('FILES RECOVERED. PRESS PLAY.', '', 'MEMORY.EXE'); }
+          else this.placeholder(); }, 300); }
+    }, fast ? 120 : 380);
+  },
+  placeholder(){
+    $('#memPlay').disabled = true; SFX.bad();
+    $('#memPh').innerHTML = `<h4>⚠ FILE NOT FOUND: ${esc(CONFIG.memory.video)}</h4>
+      <p>The memories are safe — the video just isn't here yet. To add it:</p>
+      <p>1. Put your video in the <code>assets/memory/</code> folder named <code>last-year.mp4</code><br>
+      2. OR edit <code>CONFIG.memory.video</code> in this HTML file (a path or an https:// .mp4 link)<br>
+      3. OR press <code>📂 LOAD VIDEO</code> below to play a file from this device right now.</p>`;
+    $('#memPh').classList.remove('hidden');
+  },
+  toggle(){ if (!this.ready) return; this.v.paused ? this.v.play().catch(()=>{}) : this.v.pause(); },
+  updTime(){ const v=this.v; $('#memTime').textContent = `${fmtT(v.currentTime)} / ${fmtT(v.duration)}`; $('#memSeekFill').style.width = (v.duration ? v.currentTime/v.duration*100 : 0)+'%'; },
+  leave(){ this.v?.pause(); }
+};
+
+/* ---------- 3.0 ERROR ON THE STREET ---------- */
+CTRL.street = {
+  init(){
+    this.qBag = new ShuffleBag(CONFIG.street.questions); this.aBag = new ShuffleBag(CONFIG.street.answers);
+    this.order = []; this.pos = -1; this.answered = false;
+    $('#stRand').onclick = () => this.randomize(); $('#stNext').onclick = () => this.nextPlayer();
+    $('#stBest').onclick = () => { if (!this.answered) { toast('RANDOMIZE A QUESTION FIRST','err'); return; } addPoints(this.pid, 5, 'BEST ANSWER on the street', 'street', 'street'); this.answered = false; SFX.laugh(); };
+    $('#stTicker').textContent = 'BREAKING: ERROR 5.0 REPORTERS HIT THE STREETS · ' + CONFIG.street.glitches.join(' · ') + ' · ';
+  },
+  enter(){ renderParticipants('street'); renderPower('street'); if (!this.pid || !parts('street').includes(this.pid)) this.nextPlayer(true); },
+  onParticipants(){ if (!parts('street').includes(this.pid)) this.nextPlayer(true); },
+  nextPlayer(silent){
+    const list = parts('street');
+    if (!this.order.length || this.pos >= this.order.length-1){ let o = shuffle(list); if (o.length>1 && o[0]===this.pid) o.push(o.shift()); this.order = o; this.pos = -1; }
+    this.pos++; this.pid = this.order[this.pos]; if (!list.includes(this.pid)) { this.order=[]; return this.nextPlayer(silent); }
+    const p = P(this.pid); $('#stName').textContent = p.name; $('#stAwho').textContent = p.name;
+    $('#stGuest').innerHTML = spriteHTML(p) + '<span class="mic">🎤</span>'; $('#stGuest').firstElementChild.classList.add('pop');
+    $('#stQ .txt').textContent = 'Press RANDOMIZE to start the interview!'; $('#stA .txt').textContent = '...'; this.answered = false;
+    if (!silent){ SFX.nav(); toast(`NOW INTERVIEWING: ${p.name}`, '', 'ERROR TV'); }
+  },
+  randomize(){
+    const q = this.qBag.next(), a = this.aBag.next();
+    $('#stQ .txt').textContent = q; $('#stA .txt').textContent = '…';
+    SFX.glitch(); shake($('.tv'));
+    setTimeout(() => { $('#stA .txt').textContent = a; $('#stA').classList.remove('pop'); void $('#stA').offsetWidth; $('#stA').classList.add('pop'); SFX.laugh(); this.answered = true;
+      if (Math.random() < .45) toast(rand(CONFIG.street.glitches), Math.random()<.5?'err':'', 'SYSTEM'); }, 650);
+  }
+};
+
+/* ---------- 4.0 SONG DETECTIVE ---------- */
+CTRL.song = {
+  init(){
+    this.list = CONFIG.songs.map(s => ({...s})); this.i = Math.min(S.games.songIdx||0, Math.max(0,this.list.length-1));
+    this.a = $('#sgAudio'); this.timer = new Timer($('#sgTimer'), CONFIG.songTimer, () => this.stopAudio());
+    this.a.addEventListener('timeupdate', () => { const s=this.cur(); if (s && this.a.currentTime >= (s.start||0)+(s.clip||10)) this.stopAudio(); });
+    this.a.addEventListener('error', () => { if (this.a.getAttribute('src')) this.missing(); });
+    this.a.addEventListener('pause', () => this.anim(false)); this.a.addEventListener('play', () => this.anim(true));
+    $('#sgPlay').onclick = () => this.togglePlay(); $('#sgReplay').onclick = () => this.play(true);
+    $('#sgReveal').onclick = () => this.reveal(); $('#sgNext').onclick = () => this.load(this.i+1);
+    $('#sgFile').onchange = e => { const fs=[...e.target.files]; fs.forEach(f => this.list.push({ title:f.name.replace(/\.[^.]+$/,'').toUpperCase(), artist:'(LOADED FROM DEVICE)', src:URL.createObjectURL(f), start:0, clip:15, hint:'' }));
+      if (fs.length){ toast(`${fs.length} SONG(S) ADDED FOR THIS SESSION`, '', 'SONG DETECTIVE'); this.renderList(); if (this.missingNow) this.load(this.list.length-fs.length); } };
+    HINTS.song = () => { const s = this.cur(); if (!s) return null; return s.hint || (s.artist && !/ARTIST NAME|LOADED/.test(s.artist) ? `ARTIST: ${s.artist}` : `TITLE STARTS WITH "${s.title.trim()[0]}"`); };
+  },
+  cur(){ return this.list[this.i]; },
+  enter(){ renderParticipants('song'); renderPower('song'); this.load(this.i, true); },
+  onParticipants(){ this.renderAward(); },
+  renderList(){ $('#sgList').innerHTML = this.list.map((s,k) => `<div class="trk ${k===this.i?'cur':''}" data-k="${k}"><span class="n">${String(k+1).padStart(2,'0')}</span><span>${k===this.i && !this.revealed ? '▶ ??? (HIDDEN)' : (this.done?.has(k) ? esc(s.title) : 'TRACK '+(k+1)+' — ???')}</span></div>`).join('');
+    $$('#sgList .trk').forEach(t => t.onclick = () => this.load(+t.dataset.k)); },
+  renderAward(){ renderAward($('#sgAward'), 'song', CONFIG.songPoints, 'SONG DETECTIVE', 'song', () => { this.reveal(true); }); },
+  load(k, quiet){
+    if (!this.list.length) return; this.i = ((k % this.list.length)+this.list.length) % this.list.length; S.games.songIdx = this.i; save();
+    this.done ??= new Set(); this.revealed = false; this.missingNow = false; this.stopAudio(); this.timer.set(CONFIG.songTimer);
+    const s = this.cur(); this.a.src = s.src; this.a.load();
+    $('#sgTrack').textContent = `TRACK ${this.i+1}/${this.list.length}`; $('#sgPts').textContent = `+${CONFIG.songPoints} PTS`;
+    const a = $('#sgAnswer'); a.className = 'answerCard hid'; a.innerHTML = '??? ??? ???';
+    this.renderList(); this.renderAward(); if (!quiet) SFX.nav();
+  },
+  missing(){
+    this.missingNow = true; this.anim(false);
+    const s = this.cur(); const a = $('#sgAnswer'); a.className='answerCard';
+    a.innerHTML = `<span style="color:var(--red)">⚠ NO AUDIO FILE</span><small>Add <code>${esc(s.src)}</code> or edit <code>CONFIG.songs</code>, or use 📂 ADD MP3 FILES.</small>`;
+  },
+  togglePlay(){ SFX.init(); if (this.missingNow){ SFX.bad(); shake($('#sgAnswer')); return; } if (!this.a.paused){ this.a.pause(); this.timer.stop(); } else this.play(false); },
+  play(restart){
+    if (this.missingNow){ SFX.bad(); shake($('#sgAnswer')); return; }
+    const s = this.cur(); const atEnd = this.a.currentTime >= (s.start||0)+(s.clip||10) - .05;
+    if (restart || atEnd || this.a.currentTime < (s.start||0)) this.a.currentTime = s.start||0;
+    this.a.play().then(() => { if (!this.revealed) this.timer.start(); }).catch(() => this.missing());
+  },
+  stopAudio(){ this.a.pause(); this.anim(false); },
+  anim(on){ $('#sgVinyl').classList.toggle('spin', on); $('#sgEq').classList.toggle('on', on); $('#sgPlay').textContent = on ? '⏸ PAUSE' : '▶ PLAY CLIP'; },
+  reveal(auto){
+    const s = this.cur(); if (!s) return; this.revealed = true; this.timer.stop(); this.done.add(this.i);
+    const a = $('#sgAnswer'); a.className = 'answerCard pop'; a.innerHTML = `${esc(s.title)}<small>${esc(s.artist||'')}</small>`;
+    if (!auto) SFX.fanfare(); this.renderList();
+  },
+  leave(){ this.stopAudio(); }
+};
+
+/* ---------- 5.0 LEVEL UP! ---------- */
+CTRL.levelup = {
+  init(){
+    const f = P('faizal'), a = P('abdo');
+    const card = (p, o) => `<div class="lvcard"><div class="badgeStamp">ACHIEVEMENT UNLOCKED</div>
+      <div class="lv">LEVEL UP!</div><div class="mc">★ MISSION COMPLETE ★</div>
+      <div class="sprite bob">${spriteHTML(p)}</div>
+      <div class="pl">PLAYER ${p.num}:</div><div class="big">${o.status}</div>
+      <div class="stat">BOSS DEFEATED: <b>${o.boss}</b></div>
+      <div class="stat">LEVEL COMPLETE: 100%</div><div class="xp"><i></i></div>
+      <div class="quote">${o.quote}</div>
+      <div class="welcome">${o.welcome}</div></div>`;
+    $('#lvCards').innerHTML =
+      card(f, { status:'GRADUATED', boss:'UNIVERSITY', quote:'FROM STUDENT MODE TO THE NEXT ADVENTURE..', welcome:'WELCOME TO THE UNEMPLOYED WORLD!' }) +
+      card(a, { status:'EMPLOYED', boss:'UNEMPLOYMENT', quote:'APPLICATION APPROVED.<br>CAREER MODE ACTIVATED.', welcome:'WELCOME TO THE WORKING WORLD!' });
+    $('#lvCelebrate').onclick = () => this.celebrate();
+    $('#lvMusic').onclick = () => { if (Music.on){ Music.stop(); } else { if (S.muted) toast('SOUND IS MUTED — unmute with 🔊','err'); Music.start(); } $('#lvMusic').textContent = '♪ MUSIC: '+(Music.on?'ON':'OFF'); };
+  },
+  enter(){ $$('#lvCards .xp i').forEach(i => { i.style.width='0'; setTimeout(()=>i.style.width='100%', 300); }); setTimeout(() => this.celebrate(true), 600); },
+  celebrate(auto){
+    FX.show(auto?6:12, auto?2000:3200); SFX.fanfare();
+    unlock('faizal','graduated'); unlock('abdo','employed');
+  },
+  leave(){ Music.stop(); $('#lvMusic').textContent = '♪ MUSIC: OFF'; }
+};
+
+/* ---------- 6.0 WHO'S THAT?! ---------- */
+CTRL.whos = {
+  init(){
+    this.order = S.games.whosOrder?.length === CONFIG.whosThat.length ? S.games.whosOrder : CONFIG.whosThat.map((_,i)=>i);
+    this.i = S.games.whosIdx || 0; this.mode = S.games.whosMode || 'BLUR';
+    this.timer = new Timer($('#whTimer'), CONFIG.whosTimer, () => this.reveal());
+    const origRender = this.timer.render.bind(this.timer);
+    this.timer.render = () => { origRender(); this.applyBlur(); };
+    $('#whStart').onclick = () => { this.timer.running ? (this.timer.stop(), $('#whStart').textContent='▶ RESUME') : (this.timer.start(), $('#whStart').textContent='⏸ PAUSE'); SFX.click(); };
+    $('#whReveal').onclick = () => this.reveal(); $('#whNext').onclick = () => this.show(this.i+1);
+    $('#whShuffle').onclick = () => { this.order = shuffle(this.order); S.games.whosOrder = this.order; this.show(0); toast('CHARACTERS SHUFFLED','', "WHO'S THAT"); };
+    $('#whMode').onclick = () => { const m=['BLUR','SHADOW','CLEAR']; this.mode = m[(m.indexOf(this.mode)+1)%3]; S.games.whosMode=this.mode; save(); this.applyMode(); };
+    HINTS.whos = () => { const c = this.c(); return c && !this.revealed ? `MOVIE: ${c.movie}` : null; };
+  },
+  c(){ return CONFIG.whosThat[this.order[this.i]]; },
+  enter(){ renderParticipants('whos'); renderPower('whos'); this.show(this.i, true); },
+  onParticipants(){ renderAward($('#whAward'), 'whos', CONFIG.whosPoints, "WHO'S THAT?!", 'whos', () => this.reveal(true)); },
+  show(k, quiet){
+    const n = CONFIG.whosThat.length; this.i = ((k%n)+n)%n; S.games.whosIdx = this.i; save();
+    this.revealed = false; this.timer.set(CONFIG.whosTimer); $('#whStart').textContent = '▶ START TIMER';
+    const c = this.c(), fr = $('#whFrame');
+    // NOTE: the name is NOT written into the page until REVEAL is pressed.
+    fr.innerHTML = `<span class="qm">?</span><img alt="Mystery character" src="${esc(c.img)}">`;
+    $('img', fr).onerror = () => { fr.innerHTML = `<div class="mediaPh"><h4>🖼 IMAGE NOT FOUND</h4><p>Put the picture at <code>${esc(c.img)}</code> or change the <code>img</code> link in <code>CONFIG.whosThat</code>.</p></div>`; };
+    $('#whName').innerHTML = '? ? ?'; $('#whCount').textContent = `${this.i+1}/${n}`;
+    this.applyMode(); this.onParticipants(); if (!quiet) SFX.nav();
+  },
+  applyMode(){ $('#whMode').textContent = 'MODE: '+this.mode; $('#whFrame').classList.toggle('shadow', this.mode==='SHADOW' && !this.revealed); this.applyBlur(); },
+  applyBlur(){ const img = $('#whFrame img'); if (!img) return;
+    img.style.filter = (this.mode==='BLUR' && !this.revealed) ? `blur(${Math.round(4 + 22*(this.timer.left/this.timer.total))}px)` : 'none'; },
+  reveal(auto){
+    if (this.revealed) return; this.revealed = true; this.timer.stop(); const c = this.c();
+    $('#whFrame').classList.remove('shadow'); this.applyBlur();
+    $('#whName').innerHTML = `<span class="pop" style="display:inline-block">${esc(c.name)}</span><small>${esc(c.movie)}</small>`;
+    flash(); if (!auto) SFX.fanfare();
+  }
+};
+
+/* ---------- 7.0 SEEN JEEM ---------- */
+const normAr = s => String(s).toLowerCase().trim().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/^ال/,'').replace(/\s+/g,' ');
+CTRL.seenjeem = {
+  init(){
+    S.games.sjDone ??= []; this.lvl = S.games.sjLvl || 0;
+    this.timer = new Timer($('#sjTimer'), 30, () => this.reveal(true));
+    $$('[data-sjlvl]').forEach(b => b.onclick = () => { this.lvl = +b.dataset.sjlvl; S.games.sjLvl = this.lvl; save(); this.board(); SFX.click(); });
+    $('#sjReset').onclick = () => { S.games.sjDone = []; save(); this.board(); toast('BOARD RESET','', 'SEEN JEEM'); };
+    $('#sjBack').onclick = () => this.close();
+    $('#sjReveal').onclick = () => this.reveal();
+    $('#sjSubmit').onclick = () => this.manual(); $('#sjInput').onkeydown = e => { if (e.key==='Enter') this.manual(); e.stopPropagation(); };
+    HINTS.seenjeem = () => { if (this.q == null || this.done) return null; const q = CONFIG.seenJeem.questions[this.q];
+      // 50/50: hide two wrong choices
+      const wrong = shuffle($$('#sjChoices .choice').filter(b => +b.dataset.k !== q.answer && !b.classList.contains('wrong'))).slice(0,2); wrong.forEach(b => b.classList.add('gone'));
+      return (q.hint ? q.hint + ' · ' : '') + 'TWO WRONG ANSWERS REMOVED'; };
+  },
+  enter(){ renderParticipants('seenjeem'); renderPower('seenjeem'); this.board(); },
+  onParticipants(){ this.whoBar(); },
+  board(){
+    const cfg = CONFIG.seenJeem, cats = cfg.categories;
+    $$('[data-sjlvl]').forEach(b => b.classList.toggle('on', +b.dataset.sjlvl === this.lvl));
+    const lv = this.lvl ? [this.lvl] : [1,2,3];
+    $('#sjBoard').style.gridTemplateColumns = `repeat(${cats.length}, 1fr)`;
+    let h = cats.map(c => `<div class="sjCat">${esc(c)}</div>`).join('');
+    lv.forEach(L => cats.forEach(c => {
+      const qs = cfg.questions.map((q,k)=>({q,k})).filter(x => x.q.cat===c && x.q.level===L);
+      if (!qs.length){ h += `<div class="sjTile done">—</div>`; return; }
+      const open = qs.find(x => !S.games.sjDone.includes(x.k));
+      h += open ? `<button class="sjTile" data-q="${open.k}">${L*10}<span class="lvl">${['','EASY','MEDIUM','HARD'][L]}</span></button>` : `<div class="sjTile done">✔</div>`;
+    }));
+    $('#sjBoard').innerHTML = h;
+    $$('#sjBoard [data-q]').forEach(b => b.onclick = () => this.open(+b.dataset.q));
+  },
+  whoBar(){
+    const el = $('#sjWho'); if (!parts('seenjeem').includes(this.who)) this.who = null;
+    el.innerHTML = `<span class="lbl">WHO'S ANSWERING?</span>` + parts('seenjeem').map(id => `<button class="pchip ${this.who===id?'on':''} ${this.tried?.includes(id)?'used':''}" data-w="${id}" ${this.tried?.includes(id)?'disabled title="already tried"':''}>${spriteHTML(P(id))}${esc(P(id).name)}</button>`).join('');
+    $$('[data-w]', el).forEach(b => b.onclick = () => { this.who = b.dataset.w; SFX.click(); this.whoBar(); });
+  },
+  open(k){
+    const q = CONFIG.seenJeem.questions[k]; this.q = k; this.done = false; this.who = null; this.tried = [];
+    $('#sjBoard').classList.add('hidden'); $('#sjQBox').classList.remove('hidden');
+    $('#sjCatTag').textContent = q.cat; $('#sjPtsTag').textContent = `${q.level*10} PTS · ${['','EASY','MEDIUM','HARD'][q.level]}`;
+    $('#sjQ').textContent = q.q; $('#sjInput').value = '';
+    const L = ['أ','ب','ج','د'];
+    $('#sjChoices').innerHTML = q.choices.map((c,i) => `<button class="choice" data-k="${i}"><span class="k">${L[i]}</span>${esc(c)}</button>`).join('');
+    $$('#sjChoices .choice').forEach(b => b.onclick = () => this.answer(+b.dataset.k, b));
+    const a = $('#sjAnswer'); a.className = 'answerCard hid ar'; a.textContent = '؟';
+    this.whoBar(); this.timer.set(CONFIG.seenJeem.timerByLevel[q.level] || 30); this.timer.start(); SFX.nav();
+    $('#sjQBox').scrollIntoView({ behavior:'smooth', block:'start' });
+  },
+  needWho(){ if (!this.who){ SFX.bad(); shake($('#sjWho')); toast("SELECT WHO'S ANSWERING FIRST", 'err', 'SEEN JEEM'); return false; } return true; },
+  answer(i, btn){
+    if (this.done || !this.needWho()) return; const q = CONFIG.seenJeem.questions[this.q];
+    if (i === q.answer){ btn.classList.add('right'); this.win(); }
+    else { btn.classList.add('wrong'); this.miss(); }
+  },
+  manual(){
+    if (this.done || !this.needWho()) return; const q = CONFIG.seenJeem.questions[this.q], v = normAr($('#sjInput').value);
+    if (!v) return;
+    const ok = [q.choices[q.answer], ...(q.accept||[])].some(x => normAr(x) === v);
+    if (ok){ $$('#sjChoices .choice')[q.answer].classList.add('right'); this.win(); } else { shake($('#sjInput')); this.miss(); }
+  },
+  win(){ const q = CONFIG.seenJeem.questions[this.q]; addPoints(this.who, q.level*10, `SEEN JEEM (${q.cat})`, 'seenjeem', 'seenjeem'); SFX.ok(); this.reveal(true); },
+  miss(){ SFX.bad(); toast(`WRONG! ${P(this.who).name} IS OUT FOR THIS QUESTION`, 'err', 'SEEN JEEM'); this.tried.push(this.who); this.who = null; this.whoBar();
+    if (this.tried.length >= parts('seenjeem').length) this.reveal(true); },
+  reveal(auto){
+    if (this.q == null) return; const q = CONFIG.seenJeem.questions[this.q]; this.done = true; this.timer.stop();
+    if (!S.games.sjDone.includes(this.q)) S.games.sjDone.push(this.q); save();
+    $$('#sjChoices .choice')[q.answer]?.classList.add('right');
+    const a = $('#sjAnswer'); a.className = 'answerCard ar pop'; a.textContent = 'الإجابة: ' + q.choices[q.answer];
+    if (!auto) SFX.fanfare();
+  },
+  close(){ this.q = null; this.timer.stop(); $('#sjQBox').classList.add('hidden'); $('#sjBoard').classList.remove('hidden'); this.board(); },
+};
+
+/* ---------- 8.0 ALL THE ROLES ---------- */
+CTRL.roles = {
+  init(){
+    this.bag = new ShuffleBag(CONFIG.challenges); this.assigned = S.games.roles || {}; this.victim = null;
+    this.timer = new Timer($('#rlTimer'), CONFIG.challengeTimer);
+    $('#rlAssign').onclick = () => this.assign(); $('#rlChal').onclick = () => this.challenge();
+    $('#rlStartT').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } this.timer.running ? this.timer.stop() : this.timer.start(); };
+    $('#rlDone').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } addPoints(this.victim, CONFIG.challengePoints, 'CHALLENGE COMPLETED', 'roles', 'roles'); this.timer.stop(); this.victim = null; FX.show(3,800); };
+    $('#rlFail').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } SFX.bad(); toast(`${P(this.victim).name} FAILED THE CHALLENGE. SHAME. 🔔`, 'err', 'ALL THE ROLES'); this.timer.stop(); this.victim = null; };
+  },
+  enter(){ renderParticipants('roles'); renderPower('roles'); this.render(); },
+  onParticipants(){ this.render(); },
+  render(){
+    $('#roleGrid').innerHTML = parts('roles').map(id => { const p = P(id), r = this.assigned[id];
+      return `<div class="roleCard"><div class="sprite">${spriteHTML(p)}</div><div class="who">${esc(p.name)}</div><div class="slot" data-slot="${id}"><div class="rn">${r?esc(r.name):'???'}</div><div class="rd">${r?esc(r.desc):'Waiting for a role…'}</div></div></div>`; }).join('');
+  },
+  assign(){
+    const pool = shuffle(CONFIG.roles); let ticks = 0; SFX.init();
+    const slots = $$('#roleGrid .slot'); slots.forEach(s => s.classList.add('rolling'));
+    const iv = setInterval(() => { slots.forEach(s => { const r = rand(CONFIG.roles); $('.rn',s).textContent = r.name; $('.rd',s).textContent = '…'; }); SFX.tick(); if (++ticks > 16){ clearInterval(iv);
+      this.assigned = {}; parts('roles').forEach((id,k) => this.assigned[id] = pool[k % pool.length]); S.games.roles = this.assigned; save(); this.render(); SFX.ok(); toast('ROLES ASSIGNED. NO REFUNDS.', '', 'ALL THE ROLES'); } }, 80);
+  },
+  challenge(){
+    this.victim = rand(parts('roles')); const c = this.bag.next(); this.timer.set(CONFIG.challengeTimer);
+    $('#rlChallenge').innerHTML = `<span class="px" style="font-size:12px;color:#ff5fc8">${esc(P(this.victim).name)}</span><br>${esc(c)}`;
+    $('#rlChallenge').classList.remove('pop'); void $('#rlChallenge').offsetWidth; $('#rlChallenge').classList.add('pop'); SFX.glitch();
+  },
+};
+HINTS.roles = () => null;
+HINTS.street = () => null;
+
+/* ---------- 9.0 THE HUMAN DATABASE ---------- */
+CTRL.database = {
+  init(){
+    this.qs = this.generate(); this.bag = new ShuffleBag(this.qs.map((_,i)=>i)); this.count = 0; this.cur = null;
+    $('#dbSearch').oninput = () => this.records(); $('#dbSearch').onkeydown = e => e.stopPropagation();
+    $('#dbNew').onclick = () => this.ask(); $('#dbReveal').onclick = () => this.reveal();
+    HINTS.database = () => { if (!this.cur || this.done) return null;
+      const wrong = shuffle($$('#dbChoices .dbChoice').filter(b => b.dataset.id !== this.cur.answer && !b.classList.contains('wrong') && !b.classList.contains('gone'))).slice(0,2);
+      wrong.forEach(b => b.classList.add('gone')); return 'TWO WRONG PLAYERS ELIMINATED'; };
+  },
+  /* Questions built ONLY from the player data in CONFIG (no invented facts) */
+  generate(){
+    const qs = [];
+    CONFIG.players.forEach(p => {
+      p.strengths.forEach(s => qs.push({ q:`WHICH PLAYER HAS THE STRENGTH "${s}"?`, answer:p.id }));
+      qs.push({ q:`WHO IS KNOWN AS "${p.nickname}"?`, answer:p.id });
+      qs.push({ q:`WHO IS PLAYER ${p.num}?`, answer:p.id });
+      qs.push({ q:`WHOSE SPECIAL POWER IS "${CONFIG.powers[p.power].name}"?`, answer:p.id });
+      qs.push({ q:`WHOSE FILE IS THIS? "${p.description}"`, answer:p.id });
+    });
+    return qs.concat(CONFIG.humanDb.extra || []);
+  },
+  enter(){ renderParticipants('database'); renderPower('database'); this.records(); this.whoBar(); },
+  onParticipants(){ this.whoBar(); },
+  records(){
+    const q = $('#dbSearch').value.trim().toUpperCase();
+    const list = CONFIG.players.filter(p => !q || [p.name,p.nickname,p.description,...p.strengths,CONFIG.powers[p.power].name].join(' ').toUpperCase().includes(q));
+    $('#dbRecords').innerHTML = list.map(p => `<div class="dbRec"><b>RECORD ${p.num} :: ${esc(p.name)}</b><br>ALIAS ....... ${esc(p.nickname)}<br>STRENGTHS ... ${esc(p.strengths.join(' / '))}<br>POWER ....... ${esc(CONFIG.powers[p.power].name)}<br>SCORE ....... ${S.scores[p.id]}</div>`).join('') || '<div class="dbRec">0 RECORDS FOUND. TRY AGAIN, HUMAN.</div>';
+  },
+  whoBar(){
+    const el = $('#dbWho'); if (!parts('database').includes(this.who)) this.who = null;
+    el.innerHTML = `<span class="lbl">ANSWERING:</span>` + parts('database').map(id => `<button class="pchip ${this.who===id?'on':''}" data-w="${id}" ${this.tried?.includes(id)?'disabled style="opacity:.2"':''}>${esc(P(id).name)}</button>`).join('');
+    $$('[data-w]', el).forEach(b => b.onclick = () => { this.who = b.dataset.w; SFX.click(); this.whoBar(); });
+  },
+  ask(){
+    this.cur = this.qs[this.bag.next()]; this.done = false; this.who = null; this.tried = []; this.count++;
+    $('#dbCount').textContent = 'Q ' + this.count; $('#dbQ').textContent = '> ' + this.cur.q;
+    $('#dbChoices').innerHTML = CONFIG.players.map(p => `<button class="dbChoice" data-id="${p.id}">${spriteHTML(p)}${esc(p.name)}</button>`).join('');
+    $$('#dbChoices .dbChoice').forEach(b => b.onclick = () => this.answer(b));
+    this.whoBar(); SFX.nav();
+  },
+  answer(b){
+    if (this.done) return;
+    if (!this.who){ SFX.bad(); shake($('#dbWho')); toast('SELECT WHO IS ANSWERING','err','DATABASE'); return; }
+    if (b.dataset.id === this.cur.answer){ b.classList.add('right'); this.done = true; addPoints(this.who, 10, 'HUMAN DATABASE', 'database', 'database'); SFX.ok(); }
+    else { b.classList.add('wrong'); SFX.bad(); toast(`ACCESS DENIED, ${P(this.who).name}`, 'err', 'DATABASE'); this.tried.push(this.who); this.who=null; this.whoBar(); if (this.tried.length >= parts('database').length) this.reveal(); }
+  },
+  reveal(){ if (!this.cur) return; this.done = true; $(`#dbChoices [data-id="${this.cur.answer}"]`)?.classList.add('right'); SFX.fanfare(); },
+};
+
+/* ---------- 10.0 GUESS THE LEGEND ---------- */
+CTRL.legend = {
+  init(){
+    this.i = S.games.legendIdx || 0;
+    this.timer = new Timer($('#lgTimer'), CONFIG.legendTimer, () => this.reveal());
+    $('#lgStart').onclick = () => { if (this.shown === 0) this.clue(); this.timer.running ? this.timer.stop() : this.timer.start(); SFX.click(); };
+    $('#lgClue').onclick = () => this.clue(); $('#lgReveal').onclick = () => this.reveal(); $('#lgNext').onclick = () => this.load(this.i+1);
+    HINTS.legend = () => { const L = this.L(); if (!L || this.revealed || this.shown===0) return null; return `THE ANSWER STARTS WITH "${L.answer[0]}" AND HAS ${L.answer.replace(/[^A-Z\u0600-\u06FF]/gi,'').length} LETTERS`; };
+  },
+  L(){ return CONFIG.legends[this.i]; },
+  worth(){ const p = CONFIG.legendPoints; return p[Math.min(Math.max(this.shown,1)-1, p.length-1)]; },
+  enter(){ renderParticipants('legend'); renderPower('legend'); this.load(this.i, true); },
+  onParticipants(){ this.award(); },
+  award(){ renderAward($('#lgAward'), 'legend', this.worth(), 'GUESS THE LEGEND', 'legend', () => this.reveal(true)); },
+  load(k, quiet){
+    const n = CONFIG.legends.length; this.i = ((k%n)+n)%n; S.games.legendIdx = this.i; save();
+    this.shown = 0; this.revealed = false; this.timer.set(CONFIG.legendTimer); this.render(); if (!quiet) SFX.nav();
+  },
+  render(){
+    const L = this.L();
+    $('#lgCount').textContent = `LEGEND ${this.i+1}/${CONFIG.legends.length}`; $('#lgWorth').textContent = `WORTH: ${this.worth()}`;
+    $('#lgClues').innerHTML = L.clues.map((c,k) => k < this.shown ? `<div class="clue pop"><span class="cn">CLUE ${k+1}</span>${esc(c)}</div>` : `<div class="clue locked"><span class="cn">CLUE ${k+1}</span>🔒 LOCKED</div>`).join('');
+    $('#lgAns').innerHTML = this.revealed ? `<span class="pop" style="display:inline-block">${esc(L.answer)}</span>` : '? ? ?';
+    this.award();
+  },
+  clue(){ const L = this.L(); if (this.revealed) return; if (this.shown >= L.clues.length){ toast('NO MORE CLUES — GUESS OR REVEAL!','err'); return; } this.shown++; SFX.coin(); this.render(); if (!this.timer.running) this.timer.start(); },
+  reveal(auto){ if (this.revealed) return; this.revealed = true; this.shown = this.L().clues.length; this.timer.stop(); this.render(); flash(); if (!auto) SFX.fanfare(); },
+};
+
+/* ---------- 11.0 ACHIEVEMENTS ---------- */
+function renderAchievements(){
+  $('#achList').innerHTML = CONFIG.players.map(p => {
+    const list = BADGES.filter(b => !b.only || b.only === p.id);
+    const got = S.badges[p.id];
+    return `<div class="achPlayer panel"><h3>${spriteHTML(p)} ${esc(p.name)} <span class="tag">${got.length}/${list.length} UNLOCKED</span><span class="tag" style="color:var(--green)">${S.scores[p.id]} PTS</span></h3>
+      <div class="badges">${list.map(b => `<div class="badge ${got.includes(b.id)?'':'locked'}"><div class="ic">${got.includes(b.id)?b.icon:'🔒'}</div><div class="bn">${esc(b.name)}</div><div class="bd">${esc(b.desc)}</div></div>`).join('')}</div></div>`;
+  }).join('');
+}
+CTRL.achievements = { enter(){ renderAchievements(); } };
+
+/* ---------- GAME OVER ---------- */
+CTRL.gameover = {
+  init(){
+    $('#goAgain').onclick = () => confirmReset();
+    $('#goMenu').onclick = () => openMenu();
+  },
+  enter(){
+    const r = ranking(), top = S.scores[r[0].id], winners = r.filter(p => S.scores[p.id] === top);
+    $('#goWinner').innerHTML = top > 0 ? `🏆 WINNER: <b style="color:var(--gold)">${esc(winners.map(w=>w.name).join(' & '))}</b> WITH ${top} POINTS` : 'NO POINTS SCORED YET… PLAY SOME GAMES FIRST!';
+    const podOrder = [r[1], r[0], r[2], r[3]].filter(Boolean), H = {0:170,1:120,2:90,3:60}, C = ['#b98b00','#8a93a6','#a0522d','#2a335c'];
+    $('#goPodium').innerHTML = podOrder.map(p => { const k = r.indexOf(p); return `<div class="pod">${spriteHTML(p)}<div class="nm">${esc(p.name)}</div><div class="blk" style="height:${H[k]}px;background:${C[k]}"><span class="p">#${k+1}</span><span class="s">${S.scores[p.id]}</span></div></div>`; }).join('');
+    const games = Object.keys(GAME_NAMES);
+    const sum = (pid,g) => S.log.filter(e => e.pid===pid && e.game===g).reduce((a,e)=>a+e.pts,0);
+    $('#goTable').innerHTML = `<table class="tbl"><tr><th>PLAYER</th>${games.map(g=>`<th>${GAME_NAMES[g]}</th>`).join('')}<th>TOTAL</th></tr>` +
+      r.map(p => `<tr><td class="px" style="font-size:9px">${esc(p.name)}</td>${games.map(g=>`<td class="num">${sum(p.id,g)}</td>`).join('')}<td class="num" style="color:var(--gold)">${S.scores[p.id]}</td></tr>`).join('') +
+      `<tr class="tot"><td>ALL</td>${games.map(g=>`<td class="num">${CONFIG.players.reduce((a,p)=>a+sum(p.id,g),0)}</td>`).join('')}<td class="num">${CONFIG.players.reduce((a,p)=>a+S.scores[p.id],0)}</td></tr></table>`;
+    if (top > 0){ winners.forEach(w => unlock(w.id, 'mvp')); setTimeout(() => FX.show(10, 3000), 400); SFX.fanfare(); }
+  }
+};
+
+/* ===========================================================================
+   MENU / LEADERBOARD / RESET
+   =========================================================================== */
+function openMenu(){ updateProgress(); $('#menu').classList.add('open'); SFX.click(); }
+function closeMenu(){ $('#menu').classList.remove('open'); }
+function confirmReset(){
+  openModal(`<div class="px" style="font-size:14px;color:var(--red)">⚠ PLAY AGAIN?</div><p class="mt">This resets <b>all scores, badges and progress</b>. Your sound setting is kept.</p>
+    <div class="row center mt2"><button class="btn red" id="rsYes">YES, RESET &amp; RESTART</button><button class="btn" data-close="modal">CANCEL</button></div>`);
+  $('#rsYes').onclick = () => { const m = S.muted; localStorage.removeItem(CONFIG.storageKey); S = freshState(); S.muted = m; save();
+    location.reload(); };
+}
+function setMute(m){ S.muted = m; save(); const i = m ? '🔇' : '🔊'; $('#muteBtn').textContent = i; $('#mMute').textContent = i+' SOUND: '+(m?'OFF':'ON'); if (m) Music.stop(); }
+
+/* ===========================================================================
+   BACKGROUND — slow pixel starfield
+   =========================================================================== */
+(function bg(){
+  const c = $('#bg'), x = c.getContext('2d'); let stars = [];
+  const size = () => { c.width = innerWidth; c.height = innerHeight; stars = Array.from({length: Math.round(innerWidth*innerHeight/9000)}, () => ({ x:Math.random()*c.width, y:Math.random()*c.height, z:1+Math.random()*3 })); };
+  size(); addEventListener('resize', size);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function loop(){
+    x.fillStyle = '#0b1026'; x.fillRect(0,0,c.width,c.height);
+    x.strokeStyle = 'rgba(77,184,255,.05)'; for (let gx=0; gx<c.width; gx+=48){ x.beginPath(); x.moveTo(gx,0); x.lineTo(gx,c.height); x.stroke(); }
+    stars.forEach(s => { if (!reduce){ s.y += s.z*.15; if (s.y > c.height) { s.y = 0; s.x = Math.random()*c.width; } }
+      x.fillStyle = s.z > 3 ? '#39ff7a' : s.z > 2 ? '#dfe4ee' : '#5a6380'; x.fillRect(Math.round(s.x), Math.round(s.y), s.z>3?3:2, s.z>3?3:2); });
+    if (!reduce && Math.random() < .004){ x.fillStyle = 'rgba(57,255,122,.15)'; x.fillRect(0, Math.random()*c.height, c.width, 2+Math.random()*6); }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ===========================================================================
+   BOOT SEQUENCE
+   =========================================================================== */
+function boot(){
+  const heartSVG = `<svg viewBox="0 0 10 9" shape-rendering="crispEdges"><path fill="#000" d="M1 0h3v1h2V0h3v1h1v4H9v1H8v1H7v1H6v1H4V8H3V7H2V6H1V5H0V1h1z"/><path class="fill" d="M1 1h3v1h2V1h3v4H8v1H7v1H6v1H4V7H3V6H2V5H1z"/><path fill="#fff" opacity=".7" d="M2 2h1v1H2z"/></svg>`;
+  $('#hearts').innerHTML = [1,2,3,4,5].map(n => `<div class="heart">${heartSVG}<small>YEAR ${n}</small></div>`).join('');
+  const msgs = ['> LOADING PLAYERS…','> RECOVERING MEMORIES…','> CALIBRATING CHAOS…','> INSTALLING INSIDE JOKES…','> SYNCING FIVE YEARS…','> SYSTEM READY ✔'];
+  let p = 0;
+  const iv = setInterval(() => {
+    p += 2 + Math.random()*5; if (p > 100) p = 100;
+    $('#loadFill').style.width = p + '%';
+    $$('.heart').forEach((h,k) => { if (p >= (k+1)*20 - 2 && !h.classList.contains('on')){ h.classList.add('on'); SFX.tone(660+k*110,.08,'square',.04); } });
+    $('#bootLog').textContent = msgs[Math.min(msgs.length-1, Math.floor(p/100*(msgs.length-1)))];
+    if (p >= 100){ clearInterval(iv); $('#bootBtns').classList.remove('hidden'); $('#pressAny').classList.remove('hidden');
+      if (hasSave() && S.current){ const s = SECTIONS.find(x=>x.id===S.current); $('#btnContinue').classList.remove('hidden'); $('#btnContinue').textContent = `↻ CONTINUE (${s.num})`; } }
+  }, 90);
+}
+function leaveBoot(target){
+  SFX.init(); SFX.coin(); flash();
+  const b = $('#boot'); b.style.transition = 'opacity .5s, transform .5s'; b.style.opacity = '0'; b.style.transform = 'scale(1.08)';
+  setTimeout(() => { b.classList.add('hidden'); b.style.opacity=''; b.style.transform=''; }, 500);
+  go(target, { silent:true });
+}
+
+/* ===========================================================================
+   WIRING
+   =========================================================================== */
+function init(){
+  load(); HAD_SAVE = S.visited.length > 0; setMute(S.muted); renderBoards();
+  Object.values(CTRL).forEach(c => c.init && c.init());
+  // Pre-build every section so the menu/progress work immediately
+  $('#btnStart').onclick = () => leaveBoot('welcome');
+  $('#btnContinue').onclick = () => leaveBoot(S.current || 'welcome');
+  $('#btnBootMenu').onclick = () => { SFX.init(); openMenu(); };
+  $('#nextBtn').onclick = next; $('#prevBtn').onclick = prev;
+  $('#menuBtn').onclick = openMenu; $('#logoBtn').onclick = openMenu;
+  $('#lbBtn').onclick = () => { $('#lbDrawer').classList.add('open'); SFX.click(); };
+  $('#lbClose').onclick = () => $('#lbDrawer').classList.remove('open');
+  $('#lbUndo').onclick = undoLast;
+  $('#lbRows').onclick = e => { const b = e.target.closest('[data-adj]'); if (b) addPoints(b.dataset.adj, +b.dataset.v, 'manual adjustment', 'bonus'); };
+  $('#muteBtn').onclick = () => { SFX.init(); setMute(!S.muted); SFX.click(); };
+  $('#mMute').onclick = () => { SFX.init(); setMute(!S.muted); };
+  $('#mLeader').onclick = () => { closeMenu(); $('#lbDrawer').classList.add('open'); };
+  $('#mIntro').onclick = () => { closeMenu(); $('#boot').classList.remove('hidden'); $('#bootBtns').classList.add('hidden'); $('#loadFill').style.width='0'; boot(); };
+  $('#mReset').onclick = () => { closeMenu(); confirmReset(); };
+  $('#menuList').onclick = e => { const b = e.target.closest('[data-goto]'); if (!b) return; closeMenu(); if (!$('#boot').classList.contains('hidden')) leaveBoot(b.dataset.goto); else go(b.dataset.goto); };
+  document.addEventListener('click', e => {
+    const c = e.target.closest('[data-close]'); if (c){ c.dataset.close === 'menu' ? closeMenu() : closeModal(); }
+    if (e.target.closest('[data-go="next"]')) next();
+    if (e.target.classList.contains('overlay')){ e.target.id === 'menu' ? closeMenu() : closeModal(); }
+    if (e.target.closest('.btn') && !e.target.closest('[data-aw],[data-use],#nextBtn,#prevBtn')) SFX.init();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input')) return;
+    const bootOn = !$('#boot').classList.contains('hidden');
+    if (e.key === 'Escape'){ closeModal(); closeMenu(); $('#lbDrawer').classList.remove('open'); return; }
+    if (bootOn){ if (e.key === 'Enter' && !$('#bootBtns').classList.contains('hidden')) ($('#btnContinue').classList.contains('hidden') ? $('#btnStart') : $('#btnContinue')).click(); return; }
+    if ($('#modal').classList.contains('open') || $('#menu').classList.contains('open')) return;
+    if (e.key === 'ArrowRight') next(); else if (e.key === 'ArrowLeft') prev(); else if (e.key.toLowerCase() === 'm') openMenu();
+  });
+  // restore last section silently behind the boot screen
+  go(S.current || 'welcome', { silent:true, noVisit:true });
+  boot();
+}
+init();
+</script>
+</body>
+</html>
