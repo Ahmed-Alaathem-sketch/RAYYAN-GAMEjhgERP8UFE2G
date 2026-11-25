@@ -18,9 +18,8 @@
      • Error on the Street questions / answers ........... CONFIG.street
      • Song Detective playlist (unlimited songs) ......... CONFIG.songs
      • Who's That?! characters & images .................. CONFIG.whosThat
-     • Seen Jeem questions & difficulty .................. CONFIG.seenJeem
-     • All the Roles roles / challenges .................. CONFIG.roles
-     • Human Database extra questions .................... CONFIG.humanDb
+     • All the Roles timer ............................... CONFIG.rolesTimer
+     • Human Database rounds ............................. CONFIG.humanDb
      • Guess the Legend entries .......................... CONFIG.legends
      • Achievements / badges ............................. BADGES
 
@@ -30,6 +29,8 @@
      assets/memory/      put your video here  (default: last-year.mp4)
      assets/songs/       put your mp3 clips here (song-01.mp3, song-02.mp3 ...)
    Missing media never breaks the game: a placeholder explains how to add it.
+   Songs and characters can also be added from inside the site (upload buttons);
+   those uploads are stored in the browser (IndexedDB) and survive a refresh.
 
    Scores, achievements and progress are saved in LocalStorage automatically.
   ============================================================================
@@ -175,6 +176,12 @@ img{image-rendering:pixelated}
 .overlay.open{display:flex}
 .modal{width:min(760px,100%);max-height:calc(100vh - 40px);overflow:auto;animation:pop .3s}
 .modal.wide{width:min(980px,100%)}
+.formGrid{display:flex;flex-direction:column;gap:12px}
+.formGrid label{display:flex;flex-direction:column;gap:6px;font-family:var(--px);font-size:9px;color:var(--gray)}
+.formGrid input{font-family:var(--vt);font-size:22px;padding:8px 10px;background:#000;color:#fff;border:3px solid var(--white);outline:none;user-select:text;width:100%}
+.formGrid input[type=file]{font-size:18px;cursor:pointer}
+.formGrid input:focus{border-color:var(--accent)}
+.thumb{width:64px;height:64px;object-fit:cover;border:2px solid var(--white);image-rendering:auto}
 .xbtn{position:absolute;top:8px;right:8px;width:38px;height:38px;border:3px solid var(--white);background:#c42c3d;font-family:var(--px);font-size:12px;box-shadow:0 3px 0 #000}
 #menuList{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}
 .menuItem{display:flex;align-items:center;gap:10px;padding:12px;border:3px solid var(--gray2);background:#0a0f24;text-align:left;transition:transform .1s,border-color .1s}
@@ -359,26 +366,6 @@ img{image-rendering:pixelated}
 .nameReveal{font-family:var(--px);font-size:clamp(18px,3.6vw,34px);text-align:center;margin-top:14px;min-height:46px;color:var(--blue);text-shadow:3px 3px 0 #000}
 .nameReveal small{display:block;font-size:11px;color:var(--light);margin-top:8px}
 
-/* 7.0 SEEN JEEM */
-#s-seenjeem{--accent:var(--orange)}
-.sjBoard{display:grid;gap:10px}
-.sjCat{font-family:var(--ar);font-weight:800;font-size:20px;text-align:center;background:var(--orange);color:#1a0c00;padding:10px 4px;border:3px solid #fff;box-shadow:4px 4px 0 #000;display:flex;align-items:center;justify-content:center}
-.sjTile{font-family:var(--px);font-size:clamp(14px,2.2vw,22px);padding:18px 4px;background:#1a2a5c;border:3px solid #fff;box-shadow:4px 4px 0 #000;color:var(--gold);transition:transform .1s}
-.sjTile:hover{transform:scale(1.05);background:#24408a}
-.sjTile.done{background:#0a0f24;color:#2a335c;cursor:default;transform:none;border-color:#2a335c}
-.sjTile .lvl{display:block;font-size:8px;color:var(--light);margin-top:6px}
-.sjQ{font-family:var(--ar);font-weight:800;font-size:clamp(24px,3.4vw,36px);text-align:center;line-height:1.6;color:#fff;margin:14px 0}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.choice{font-family:var(--ar);font-weight:800;font-size:clamp(18px,2.6vw,24px);padding:14px;background:#1a2a5c;border:3px solid #fff;box-shadow:0 5px 0 #000;text-align:center;transition:transform .08s}
-.choice:hover{background:#24408a}
-.choice:active{transform:translateY(4px);box-shadow:none}
-.choice.right{background:var(--green2);border-color:var(--green)}
-.choice.wrong{background:#7a1622;border-color:var(--red)}
-.choice.gone{visibility:hidden}
-.choice .k{font-family:var(--px);font-size:11px;color:var(--gold);margin-inline-end:8px}
-.manual{display:flex;gap:8px;margin-top:14px}
-.manual input{flex:1;font-family:var(--ar);font-size:22px;padding:10px;background:#000;color:#fff;border:3px solid #fff;outline:none;user-select:text}
-
 /* 8.0 ALL THE ROLES */
 #s-roles{--accent:#ff5fc8}
 .roleGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -390,8 +377,9 @@ img{image-rendering:pixelated}
 .slot{width:100%;border:3px solid #ff5fc8;background:#000;padding:8px;min-height:96px;display:flex;flex-direction:column;justify-content:center}
 .slot .rn{font-family:var(--px);font-size:10px;color:#ff5fc8;line-height:1.5}
 .slot .rd{font-size:18px;margin-top:4px}
-.slot.rolling .rn{animation:blink .12s steps(2) infinite}
-.challenge{font-size:clamp(24px,3vw,32px);text-align:center;padding:18px;min-height:90px;color:#fff}
+.actorInput{width:100%;font-family:var(--px);font-size:clamp(14px,2.4vw,22px);padding:14px;background:#000;color:#fff;border:3px solid #ff5fc8;outline:none;user-select:text;text-transform:uppercase}
+.cnt{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px}
+.cnt input{width:70px;font-family:var(--px);font-size:18px;text-align:center;padding:6px 2px;background:#111;color:var(--gold);border:3px solid #fff;outline:none;user-select:text}
 
 /* 9.0 THE HUMAN DATABASE */
 #s-database{--accent:var(--green)}
@@ -404,6 +392,16 @@ img{image-rendering:pixelated}
 .dbChoice{border:3px solid var(--green);background:#04160b;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--px);font-size:9px;color:#fff}
 .dbChoice img,.dbChoice .ph{height:90px;width:60px;object-fit:contain}
 .dbChoice:hover{background:#0b3018}
+.dbInput{width:100%;font-family:var(--vt);font-size:24px;padding:10px;background:#000;color:#fff;border:3px solid var(--green);outline:none;user-select:text}
+.dbTrait{font-size:clamp(24px,3.2vw,34px);color:#fff;text-align:center;padding:10px;border:3px dashed var(--green2)}
+.dbPass{text-align:center;padding:18px;border:3px solid var(--green);background:#04160b;font-family:var(--px);font-size:clamp(12px,2vw,18px);color:var(--green);line-height:1.8}
+.dbPass b{color:#fff;font-size:1.3em}.dbPass span{font-size:.6em;color:var(--gray)}
+.voteRow{display:grid;grid-template-columns:130px 1fr 34px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed #0b3018}
+.voteRow .vn{font-family:var(--px);font-size:9px;color:#fff}
+.voteRow .vb{height:16px;border:2px solid var(--green);padding:1px}.voteRow .vb i{display:block;height:100%;background:var(--green2)}
+.voteRow .vc{font-family:var(--px);font-size:12px;color:#fff;text-align:right}
+.voteRow .vv{grid-column:1/-1;font-size:18px;color:var(--gray)}
+.voteRow.win .vn,.voteRow.win .vc{color:var(--gold)}.voteRow.win .vb i{background:var(--gold)}
 .dbChoice.right{background:var(--green2)}.dbChoice.wrong{background:#7a1622;border-color:var(--red)}.dbChoice.gone{opacity:.15;pointer-events:none}
 
 /* 10.0 GUESS THE LEGEND */
@@ -470,7 +468,6 @@ img{image-rendering:pixelated}
   .sheet .portrait{min-height:200px}
   .interview{grid-template-columns:1fr}
   .interview .guest{height:160px}
-  .choices{grid-template-columns:1fr}
   .dbChoices{grid-template-columns:repeat(2,1fr)}
   .pcard .sprite{height:150px}
   .btn{font-size:10px;padding:11px 12px}
@@ -478,8 +475,6 @@ img{image-rendering:pixelated}
   #nav .btn{padding:10px 8px}
   .screen{padding:18px 12px 40px}
   .vinyl{width:160px;height:160px}.sleeve{width:170px;height:170px}
-  .sjTile{padding:12px 2px}
-  .sjCat{font-size:15px}
 }
 @media (max-width:420px){
   .cards,.roleGrid{grid-template-columns:1fr 1fr;gap:10px}
@@ -625,8 +620,12 @@ img{image-rendering:pixelated}
         <div class="panel">
           <div class="px" style="font-size:10px;color:var(--purple)">PLAYLIST</div>
           <div class="playlist mt" id="sgList"></div>
-          <label class="btn sm blue mt" style="width:100%">📂 ADD MP3 FILES (THIS SESSION)<input type="file" accept="audio/*" multiple id="sgFile" hidden></label>
-          <p class="muted mt" style="font-size:17px">Permanent songs: put files in <code>assets/songs/</code> and list them in <code>CONFIG.songs</code>. Titles stay hidden until REVEAL.</p>
+          <div class="row mt" style="flex-direction:column;align-items:stretch;gap:8px">
+            <button class="btn sm blue" id="sgReplaceBtn">🔁 REPLACE CURRENT TRACK (MP3)</button>
+            <button class="btn sm green" id="sgAddBtn">➕ ADD NEW TRACK</button>
+            <button class="btn sm red" id="sgRemoveBtn">🗑 REMOVE CURRENT TRACK</button>
+          </div>
+          <p class="muted mt" style="font-size:17px">Uploaded MP3s are saved in this browser and survive a refresh. Titles stay hidden until REVEAL.</p>
         </div>
       </div>
     </section>
@@ -659,77 +658,48 @@ img{image-rendering:pixelated}
             <button class="btn green" id="whStart">▶ START TIMER</button>
             <button class="btn gold" id="whReveal">👁 REVEAL ANSWER</button>
             <button class="btn" id="whNext">NEXT CHARACTER ▶</button>
+            <button class="btn blue" id="whAddBtn">➕ ADD CHARACTER</button>
           </div>
           <div class="award mt2" id="whAward"></div>
         </div>
       </div>
     </section>
 
-    <!-- ============ 7.0 SEEN JEEM ============ -->
-    <section class="screen" id="s-seenjeem">
-      <div class="sec-head"><span class="sec-num">7.0</span><h1>SEEN JEEM</h1><div class="subt ar" dir="rtl">سين جيم — اختر فئة وسؤالاً، وأجب قبل نهاية الوقت!</div></div>
-      <div class="partBar" data-part="seenjeem"></div>
-      <details class="powerphase" data-power="seenjeem"></details>
-      <div class="row" style="margin-bottom:14px">
-        <span class="px" style="font-size:9px;color:var(--gray)">DIFFICULTY:</span>
-        <button class="btn sm" data-sjlvl="0">ALL</button>
-        <button class="btn sm" data-sjlvl="1">EASY</button>
-        <button class="btn sm" data-sjlvl="2">MEDIUM</button>
-        <button class="btn sm" data-sjlvl="3">HARD</button>
-        <span class="grow"></span>
-        <button class="btn sm red" id="sjReset">↺ RESET BOARD</button>
-      </div>
-      <div class="sjBoard" id="sjBoard" dir="rtl"></div>
-      <div class="panel accent hidden mt" id="sjQBox">
-        <div class="row" style="justify-content:space-between"><span class="tag ar" id="sjCatTag"></span><span class="tag" id="sjPtsTag"></span></div>
-        <div class="sjQ" dir="rtl" id="sjQ"></div>
-        <div class="partBar" id="sjWho"></div>
-        <div class="timerBox" id="sjTimer"></div>
-        <div class="choices mt" dir="rtl" id="sjChoices"></div>
-        <div class="manual" dir="rtl"><input id="sjInput" placeholder="اكتب إجابتك هنا..." autocomplete="off"><button class="btn green" id="sjSubmit">✔</button></div>
-        <div class="answerCard hid ar" id="sjAnswer">؟</div>
-        <div class="row center mt"><button class="btn gold" id="sjReveal">👁 REVEAL</button><button class="btn" id="sjBack">◀ BOARD</button></div>
-      </div>
-    </section>
-
     <!-- ============ 8.0 ALL THE ROLES ============ -->
     <section class="screen" id="s-roles">
-      <div class="sec-head"><span class="sec-num">8.0</span><h1>ALL THE ROLES</h1><div class="subt">random roles · random challenges · zero mercy</div></div>
+      <div class="sec-head"><span class="sec-num">8.0</span><h1>ALL THE ROLES</h1><div class="subt">name the actor · list their works · 1 correct answer = 1 point</div></div>
       <div class="partBar" data-part="roles"></div>
       <details class="powerphase" data-power="roles"></details>
-      <div class="roleGrid" id="roleGrid"></div>
-      <div class="row center mt2"><button class="btn big" style="background:#a3337f" id="rlAssign">🎰 ASSIGN ROLES</button></div>
-      <div class="panel mt2" style="border-color:#ff5fc8">
-        <div class="px" style="font-size:10px;color:#ff5fc8">RANDOM CHALLENGE</div>
-        <div class="challenge" id="rlChallenge">Press RANDOM CHALLENGE to pick a victim… er, player.</div>
-        <div class="timerBox" id="rlTimer"></div>
+      <div class="panel" style="border-color:#ff5fc8">
+        <div class="px" style="font-size:10px;color:#ff5fc8">🎬 ACTOR / ACTRESS</div>
+        <input class="actorInput mt" id="rlActor" maxlength="80" placeholder="TYPE THE ACTOR'S NAME…" autocomplete="off">
+        <div class="timerBox mt" id="rlTimer"></div>
         <div class="row center mt">
-          <button class="btn" style="background:#a3337f" id="rlChal">🎲 RANDOM CHALLENGE</button>
           <button class="btn green" id="rlStartT">▶ TIMER</button>
-          <button class="btn gold" id="rlDone">✔ COMPLETED +15</button>
-          <button class="btn red" id="rlFail">✖ FAILED</button>
+          <button class="btn" id="rlResetT">⟲ RESET TIMER</button>
         </div>
+      </div>
+      <div class="roleGrid mt2" id="roleGrid"></div>
+      <div class="row center mt2">
+        <button class="btn big gold" id="rlAward">✔ AWARD POINTS</button>
+        <button class="btn" id="rlClear">↺ CLEAR COUNTS</button>
+      </div>
+      <div class="panel mt2" style="border-color:#ff5fc8">
+        <div class="px" style="font-size:10px;color:#ff5fc8">PREVIOUS ACTORS</div>
+        <div class="logList" id="rlHist"></div>
       </div>
     </section>
 
     <!-- ============ 9.0 THE HUMAN DATABASE ============ -->
     <section class="screen" id="s-database">
-      <div class="sec-head"><span class="sec-num">9.0</span><h1>THE HUMAN DATABASE</h1><div class="subt">query the records · then prove you know your friends</div></div>
+      <div class="sec-head"><span class="sec-num">9.0</span><h1>THE HUMAN DATABASE</h1><div class="subt">write a trait · vote in secret · side with the majority</div></div>
       <div class="partBar" data-part="database"></div>
       <details class="powerphase" data-power="database"></details>
-      <div class="grid2">
-        <div class="term">
-          <div>ERROR 5.0 HUMAN DATABASE [4 RECORDS]</div>
-          <div class="prompt mt">QUERY <input id="dbSearch" placeholder="type a name or strength..." autocomplete="off"></div>
-          <div id="dbRecords"></div>
-        </div>
-        <div class="term">
-          <div class="row" style="justify-content:space-between"><span>QUIZ MODE</span><span id="dbCount">Q 0</span></div>
-          <div class="mt" id="dbQ" style="color:#fff;font-size:24px;min-height:64px">&gt; Press NEW QUESTION</div>
-          <div class="partBar mt" id="dbWho"></div>
-          <div class="dbChoices" id="dbChoices"></div>
-          <div class="row center mt"><button class="btn green" id="dbNew">NEW QUESTION</button><button class="btn gold" id="dbReveal">REVEAL</button></div>
-        </div>
+      <div class="term" id="dbGame"></div>
+      <div class="term mt2">
+        <div>ERROR 5.0 HUMAN DATABASE [4 RECORDS]</div>
+        <div class="prompt mt">QUERY <input id="dbSearch" placeholder="type a name or strength..." autocomplete="off"></div>
+        <div id="dbRecords"></div>
       </div>
     </section>
 
@@ -948,78 +918,41 @@ const CONFIG = {
   whosTimer: 20,
   whosPoints: 10,
 
-  /* ---- 7.0 SEEN JEEM — level: 1 easy, 2 medium, 3 hard (points = level × 10) ----
-     choices: 4 options · answer: index of the correct choice (0-3)
-     accept: extra spellings accepted when typing the answer manually            */
-  seenJeem: {
-    categories: ['جغرافيا','رياضة','أفلام','علوم','ألعاب فيديو','منوعات'],
-    timerByLevel: {1:20, 2:30, 3:40},
-    questions: [
-      { cat:'جغرافيا', level:1, q:'ما هي عاصمة اليابان؟', choices:['طوكيو','أوساكا','كيوتو','سيول'], answer:0, accept:['tokyo'], hint:'تبدأ بحرف الطاء' },
-      { cat:'جغرافيا', level:2, q:'ما هو أطول نهر في العالم حسب أغلب المصادر؟', choices:['الأمازون','النيل','المسيسيبي','الفرات'], answer:1, accept:['nile','نهر النيل'], hint:'يمر بمصر' },
-      { cat:'جغرافيا', level:3, q:'ما هي أصغر دولة في العالم من حيث المساحة؟', choices:['موناكو','سان مارينو','الفاتيكان','مالطا'], answer:2, accept:['vatican','دولة الفاتيكان'], hint:'تقع داخل مدينة روما' },
-      { cat:'رياضة', level:1, q:'كم عدد لاعبي فريق كرة القدم داخل الملعب؟', choices:['10','11','9','12'], answer:1, accept:['احد عشر','أحد عشر','eleven'], hint:'أكثر من 10' },
-      { cat:'رياضة', level:2, q:'في أي دولة أقيمت بطولة كأس العالم 2022؟', choices:['روسيا','البرازيل','قطر','ألمانيا'], answer:2, accept:['qatar'], hint:'دولة خليجية' },
-      { cat:'رياضة', level:3, q:'كم مرة فازت البرازيل بكأس العالم لكرة القدم؟', choices:['4','5','3','6'], answer:1, accept:['خمس','خمسة','five'], hint:'عدد أصابع اليد' },
-      { cat:'أفلام', level:1, q:'ما اسم الأسد الصغير في فيلم The Lion King؟', choices:['سكار','موفاسا','سيمبا','نالا'], answer:2, accept:['simba'], hint:'يبدأ بحرف السين' },
-      { cat:'أفلام', level:2, q:'من هو مخرج فيلم Inception؟', choices:['ستيفن سبيلبرغ','كريستوفر نولان','جيمس كاميرون','ريدلي سكوت'], answer:1, accept:['نولان','christopher nolan','nolan'], hint:'أخرج أيضاً Interstellar' },
-      { cat:'أفلام', level:3, q:'ما هو أول فيلم رسوم متحركة طويل من إنتاج بيكسار؟', choices:['Finding Nemo','Monsters, Inc.','Cars','Toy Story'], answer:3, accept:['toy story','توي ستوري','حكاية لعبة'], hint:'صدر عام 1995' },
-      { cat:'علوم', level:1, q:'ما هو الكوكب الأقرب إلى الشمس؟', choices:['الزهرة','عطارد','المريخ','الأرض'], answer:1, accept:['mercury'], hint:'يبدأ بحرف العين' },
-      { cat:'علوم', level:2, q:'ما هو الرمز الكيميائي للذهب؟', choices:['Ag','Gd','Au','Go'], answer:2, accept:['au'], hint:'من الكلمة اللاتينية Aurum' },
-      { cat:'علوم', level:3, q:'كم عدد عظام جسم الإنسان البالغ؟', choices:['201','206','212','196'], answer:1, accept:['two hundred six'], hint:'أكثر من 200 بقليل' },
-      { cat:'ألعاب فيديو', level:1, q:'ما هي الشركة المصنعة لجهاز بلايستيشن؟', choices:['مايكروسوفت','نينتندو','سوني','سيغا'], answer:2, accept:['sony'], hint:'شركة يابانية' },
-      { cat:'ألعاب فيديو', level:2, q:'ما اسم شقيق ماريو الذي يرتدي اللون الأخضر؟', choices:['واريو','يوشي','لويجي','تود'], answer:2, accept:['luigi','لويچي'], hint:'يبدأ بحرف اللام' },
-      { cat:'ألعاب فيديو', level:3, q:'في أي سنة صدر أول جهاز بلايستيشن في اليابان؟', choices:['1992','1994','1996','1998'], answer:1, accept:[], hint:'قبل منتصف التسعينات بقليل' },
-      { cat:'منوعات', level:1, q:'كم عدد أيام السنة الكبيسة؟', choices:['365','364','366','367'], answer:2, accept:[], hint:'فبراير فيها 29 يوماً' },
-      { cat:'منوعات', level:2, q:'ما هو أكبر محيط في العالم؟', choices:['الأطلسي','الهادئ','الهندي','المتجمد الشمالي'], answer:1, accept:['المحيط الهادئ','الهادي','pacific'], hint:'يقع بين آسيا والأمريكتين' },
-      { cat:'منوعات', level:3, q:'كم عدد الدول الأعضاء في الأمم المتحدة من قارة أفريقيا؟', choices:['48','50','54','60'], answer:2, accept:[], hint:'بين 50 و 55' },
-    ],
-  },
-
-  /* ---- 8.0 ALL THE ROLES ---- */
-  roles: [
-    { name:'THE JUDGE',      desc:'Settles every argument this round. Decisions are final.' },
-    { name:'THE NARRATOR',   desc:'Narrates everything like a nature documentary.' },
-    { name:'THE MIME',       desc:'Gestures only until the next round. No words!' },
-    { name:'THE ECHO',       desc:'Repeats the last word of everyone’s sentence.' },
-    { name:'THE HYPE MAN',   desc:'Cheers loudly for every single answer.' },
-    { name:'THE ROBOT',      desc:'Speaks only in a robot voice. BEEP BOOP.' },
-    { name:'THE DETECTIVE',  desc:'Asks “are you sure?” after every answer.' },
-    { name:'THE CRITIC',     desc:'Rates everything that happens out of 10.' },
-    { name:'THE TIMEKEEPER', desc:'Announces the time every 2 minutes. Seriously.' },
-    { name:'THE BODYGUARD',  desc:'Must stand next to another player at all times.' },
-  ],
-  challenges: [
-    'Do your best impression of another player — the group guesses who.',
-    'Speak only in questions for 60 seconds.',
-    'Tell the story of your week in exactly 5 words.',
-    'Hum a song — the group has to guess it.',
-    'Keep a straight face for 30 seconds while everyone tries to make you laugh.',
-    'Describe a movie without saying its name — 60 seconds.',
-    'Strike your best victory pose and hold it for 15 seconds.',
-    'Give a 30-second motivational speech about sleeping.',
-    'Name 5 PlayStation games in 15 seconds.',
-    'Explain the rules of any game to the group like a TV announcer.',
-  ],
-  challengeTimer: 60,
-  challengePoints: 15,
+  /* ---- 8.0 ALL THE ROLES ----
+     The host types an actor's name; each player names as many of that actor's movies /
+     series / other works as they can. Enter each player's number of correct answers:
+     1 correct answer = 1 point, added to that player's existing score.                     */
+  rolesTimer: 60,     // optional countdown in seconds
 
   /* ---- 9.0 THE HUMAN DATABASE ----
-     Quiz questions are generated automatically from the player data above.
-     Add your own: { q:'…question…', answer:'abdo' }  (answer = player id)          */
-  humanDb: { extra: [] },
+     Secret-vote game. Each round a player writes a trait ("the most adventurous person"),
+     then everyone votes privately. Voters who picked the single most-voted player get 1 point.
+     A tie for most votes = nobody scores.                                                    */
+  humanDb: { rounds: 8, minPlayers: 3 },
 
-  /* ---- 10.0 GUESS THE LEGEND ----
-     Clues go from hardest to easiest. Add legendary moments of your own group too, e.g.
-     { answer:'THE NIGHT WE GOT LOST', clues:['clue 1','clue 2','clue 3'] }                  */
+  /* ---- 10.0 GUESS THE LEGEND — real, well-known people (actors & singers) ----
+     Clues go from hardest to easiest. `ar` = the name in Arabic (shown on reveal, optional). */
   legends: [
-    { answer:'SUPER MARIO', clues:['Has been jumping since the 1980s.','Plumber by profession.','Red cap with the letter M — brother of Luigi.'] },
-    { answer:'KRATOS', clues:['A Spartan warrior with a very bad temper.','Took on the gods of Olympus, then moved north.','God of War — father of Atreus.'] },
-    { answer:'LIONEL MESSI', clues:['Left-footed and spent most of his career at one club.','Holds a record number of Ballon d’Or awards.','Lifted the 2022 World Cup as Argentina’s captain.'] },
-    { answer:'SHERLOCK HOLMES', clues:['Plays the violin when thinking.','Lives at 221B Baker Street.','The detective partner of Dr. Watson.'] },
-    { answer:'PIKACHU', clues:['Doesn’t like being inside a ball.','Electric type.','Ash’s yellow partner.'] },
-    { answer:'BATMAN', clues:['Billionaire by day.','Protects Gotham City.','Bruce Wayne’s secret identity.'] },
-    { answer:'DARTH VADER', clues:['Breathes very loudly.','Wears black armor and a cape.','“I am your father.”'] },
+    { answer:'UMM KULTHUM', ar:'أم كلثوم', clues:['Her concerts could last for hours — a single song often filled a whole night.','Known as “Kawkab Al-Sharq” — the Star of the East.','The Egyptian legend behind “Enta Omri” and “Alf Leila wa Leila”.'] },
+    { answer:'MICHAEL JACKSON', clues:['Started singing as a child in a band with his brothers.','His album “Thriller” is the best-selling album of all time.','The King of Pop, famous for the moonwalk.'] },
+    { answer:'FAIROUZ', ar:'فيروز', clues:['Worked for decades with the Rahbani brothers.','Her voice is a classic sound of Arab mornings on the radio.','The Lebanese singer of “Li Beirut” and “Zahrat Al-Madaen”.'] },
+    { answer:'TOM CRUISE', clues:['Famous for doing his own dangerous stunts.','Flew fighter jets on screen in 1986 and again in 2022.','Ethan Hunt in “Mission: Impossible”.'] },
+    { answer:'ADEL EMAM', ar:'عادل إمام', clues:['Starred in the stage comedy “Shahed Ma Shafsh Haga”.','Played the lead in the films “Al-Irhabi” and “The Yacoubian Building”.','Egypt’s comedy icon, nicknamed “Al-Zaeem”.'] },
+    { answer:'ADELE', clues:['British singer whose album titles are numbers.','Won an Oscar for a James Bond theme song.','Sang “Hello” and “Rolling in the Deep”.'] },
+    { answer:'MOHAMMED ABDU', ar:'محمد عبده', clues:['Has been singing professionally since the 1960s.','One of the most famous voices of Gulf music.','The Saudi singer nicknamed “Fannan Al-Arab”.'] },
+    { answer:'LEONARDO DICAPRIO', clues:['Started as a young actor on the TV sitcom “Growing Pains”.','Finally won his first Oscar for “The Revenant”.','Jack in “Titanic”.'] },
+    { answer:'AMR DIAB', ar:'عمرو دياب', clues:['Has won several World Music Awards.','Often called the father of “Mediterranean music”.','The Egyptian singer of “Tamally Maak” and “Nour El Ein”.'] },
+    { answer:'DWAYNE JOHNSON', clues:['Former WWE champion.','Voiced Maui in Disney’s “Moana”.','Better known as “The Rock”.'] },
+    { answer:'NASSER AL-QASABI', ar:'ناصر القصبي', clues:['Saudi actor who later starred in the series “Selfie”.','Comedy partner of Abdullah Al-Sadhan for years.','Co-star of the legendary Saudi comedy “Tash Ma Tash”.'] },
+    { answer:'SHAKIRA', clues:['Colombian singer and songwriter.','Sang the 2010 World Cup song “Waka Waka”.','Her “Hips Don’t Lie”.'] },
+    { answer:'OMAR SHARIF', ar:'عمر الشريف', clues:['Was also a world-class bridge player.','An Egyptian star who made it big in Hollywood.','Starred in “Lawrence of Arabia” and “Doctor Zhivago”.'] },
+    { answer:'WILL SMITH', clues:['Started his career as a rapper.','Played the Genie in the 2019 live-action “Aladdin”.','The Fresh Prince of Bel-Air.'] },
+    { answer:'NANCY AJRAM', ar:'نانسي عجرم', clues:['Became a pop star in the early 2000s.','Was a judge on “Arab Idol”.','The Lebanese singer of “Ah W Noss” and “Ya Tabtab”.'] },
+    { answer:'JACKIE CHAN', clues:['Shows bloopers of his stunts during the end credits.','Hong Kong action and kung-fu star.','Partnered with Chris Tucker in “Rush Hour”.'] },
+    { answer:'KADIM AL SAHER', ar:'كاظم الساهر', clues:['Composes much of his own music.','Famous for singing the poems of Nizar Qabbani.','The Iraqi singer known as “the Caesar of Arabic song”.'] },
+    { answer:'MERYL STREEP', clues:['Holds the record for the most Oscar acting nominations.','Sang ABBA songs in “Mamma Mia!”.','Played fashion editor Miranda Priestly in “The Devil Wears Prada”.'] },
+    { answer:'MOHAMED HENEDY', ar:'محمد هنيدي', clues:['A leading Egyptian comedy star since the late 1990s.','Starred in “Ismailia Rayeh Gai”.','The lead of “Saidi fi Gamaat Amrika”.'] },
+    { answer:'ED SHEERAN', clues:['British singer-songwriter famous for his loop pedal.','Had a cameo in “Game of Thrones”.','Sang “Shape of You” and “Perfect”.'] },
   ],
   legendTimer: 45,
   legendPoints: [30, 20, 10],   // points per number of clues shown
@@ -1036,14 +969,13 @@ const SECTIONS = [
   { id:'song',         num:'4.0',  title:'SONG DETECTIVE' },
   { id:'levelup',      num:'5.0',  title:'LEVEL UP!' },
   { id:'whos',         num:'6.0',  title:"WHO'S THAT?!" },
-  { id:'seenjeem',     num:'7.0',  title:'SEEN JEEM' },
   { id:'roles',        num:'8.0',  title:'ALL THE ROLES' },
   { id:'database',     num:'9.0',  title:'THE HUMAN DATABASE' },
   { id:'legend',       num:'10.0', title:'GUESS THE LEGEND' },
   { id:'achievements', num:'11.0', title:'ACHIEVEMENT UNLOCKED!' },
   { id:'gameover',     num:'∞',    title:'GAME OVER!' },
 ];
-const GAME_NAMES = { street:'STREET', song:'SONG', whos:"WHO'S THAT", seenjeem:'SEEN JEEM', roles:'ROLES', database:'DATABASE', legend:'LEGEND', bonus:'BONUS' };
+const GAME_NAMES = { street:'STREET', song:'SONG', whos:"WHO'S THAT", roles:'ROLES', database:'DATABASE', legend:'LEGEND', bonus:'BONUS' };
 
 /* ===========================================================================
    ACHIEVEMENTS — `test(stats, score)` runs after every point change.
@@ -1058,9 +990,8 @@ const BADGES = [
   { id:'dj',       icon:'💿', name:'HUMAN SHAZAM',     desc:'Guess 3 songs',                      test:s=>s.song>=3 },
   { id:'whos',     icon:'🐠', name:'DISNEY EXPERT',    desc:"Guess a WHO'S THAT character",       test:s=>s.whos>=1 },
   { id:'whos5',    icon:'🏰', name:'PIXAR PROFESSOR',  desc:'Guess 5 characters',                 test:s=>s.whos>=5 },
-  { id:'sj',       icon:'📚', name:'SEEN JEEM SCHOLAR',desc:'Answer 3 Seen Jeem questions',       test:s=>s.seenjeem>=3 },
-  { id:'roles',    icon:'🎭', name:'CHALLENGE ACCEPTED',desc:'Complete a challenge',             test:s=>s.roles>=1 },
-  { id:'db',       icon:'💾', name:'HUMAN DATABASE',   desc:'Answer 3 database questions',        test:s=>s.database>=3 },
+  { id:'roles',    icon:'🎭', name:'FILMOGRAPHY',      desc:'Score in ALL THE ROLES',             test:s=>s.roles>=1 },
+  { id:'db',       icon:'💾', name:'HUMAN DATABASE',   desc:'Vote with the majority 3 times',     test:s=>s.database>=3 },
   { id:'legend',   icon:'🏛', name:'LEGEND HUNTER',    desc:'Guess a legend',                     test:s=>s.legend>=1 },
   { id:'power',    icon:'⚡', name:'POWER USER',       desc:'Use a special power',                test:s=>s.powers>=1 },
   { id:'ghosted',  icon:'👻', name:'GHOSTED',          desc:'Get blocked by GHOST MODE',          test:s=>s.ghosted>=1 },
@@ -1098,10 +1029,32 @@ class ShuffleBag {
 }
 
 /* ===========================================================================
+   MEDIA STORE — uploaded MP3s / images are kept in IndexedDB so they survive a
+   refresh. If IndexedDB is unavailable (e.g. private mode) they work for this session only.
+   =========================================================================== */
+const MediaDB = {
+  mem:{}, urls:{},
+  open(){
+    if (!this.p) this.p = new Promise((res, rej) => {
+      try { const r = indexedDB.open('error5-media', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('files');
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch(e){ rej(e); }
+    });
+    return this.p;
+  },
+  async tx(mode, fn){ const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('files', mode); const r = fn(t.objectStore('files')); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); }); },
+  async put(k, blob){ this.mem[k] = blob; if (this.urls[k]){ URL.revokeObjectURL(this.urls[k]); delete this.urls[k]; }
+    try { await this.tx('readwrite', st => st.put(blob, k)); return true; } catch(e){ console.warn('IndexedDB unavailable', e); return false; } },
+  async get(k){ if (this.mem[k]) return this.mem[k]; try { return await this.tx('readonly', st => st.get(k)); } catch(e){ return null; } },
+  async del(k){ delete this.mem[k]; if (this.urls[k]){ URL.revokeObjectURL(this.urls[k]); delete this.urls[k]; } try { await this.tx('readwrite', st => st.delete(k)); } catch(e){} },
+  async url(k){ if (this.urls[k]) return this.urls[k]; const b = await this.get(k); if (!b) return null; return this.urls[k] = URL.createObjectURL(b); },
+};
+
+/* ===========================================================================
    SAVE STATE (LocalStorage)
    =========================================================================== */
 const ids = () => CONFIG.players.map(p => p.id);
-const zeroStats = () => ({ street:0, song:0, whos:0, seenjeem:0, roles:0, database:0, legend:0, powers:0, ghosted:0 });
+const zeroStats = () => ({ street:0, song:0, whos:0, roles:0, database:0, legend:0, powers:0, ghosted:0 });
 function freshState(){
   const s = { scores:{}, stats:{}, badges:{}, log:[], visited:[], current:null, muted:false, rounds:{}, participants:{}, games:{} };
   ids().forEach(id => { s.scores[id]=0; s.stats[id]=zeroStats(); s.badges[id]=[]; });
@@ -1114,6 +1067,13 @@ function load(){
     if (raw){ const d = JSON.parse(raw); S = Object.assign(freshState(), d);
       ids().forEach(id => { S.scores[id] ??= 0; S.stats[id] = Object.assign(zeroStats(), S.stats[id]||{}); S.badges[id] ??= []; }); }
   } catch(e){ console.warn('Save file corrupted — starting fresh', e); S = freshState(); }
+  // Migration: clean data left over from removed / reworked games in older saves
+  ['sjDone','sjLvl','roles'].forEach(k => delete S.games[k]);
+  delete S.rounds.seenjeem; delete S.participants.seenjeem;
+  ids().forEach(id => { delete S.stats[id].seenjeem; S.badges[id] = S.badges[id].filter(b => BADGES.some(x => x.id === b)); });
+  if (S.games.whosOrder && S.games.whosOrder.some(x => typeof x === 'number')) { delete S.games.whosOrder; S.games.whosIdx = 0; }
+  if (!SECTIONS.some(x => x.id === S.current)) S.current = null;
+  S.visited = S.visited.filter(v => SECTIONS.some(x => x.id === v));
 }
 function save(){ try { localStorage.setItem(CONFIG.storageKey, JSON.stringify(S)); } catch(e){} }
 let HAD_SAVE = false;
@@ -1484,42 +1444,104 @@ CTRL.street = {
   }
 };
 
-/* ---------- 4.0 SONG DETECTIVE ---------- */
+/* ---------- 4.0 SONG DETECTIVE ----------
+   Track list = CONFIG.songs + tracks added in the site. Uploaded MP3s live in IndexedDB
+   (key "song:<id>"); titles/artists/overrides live in the save file (S.games).            */
 CTRL.song = {
   init(){
-    this.list = CONFIG.songs.map(s => ({...s})); this.i = Math.min(S.games.songIdx||0, Math.max(0,this.list.length-1));
     this.a = $('#sgAudio'); this.timer = new Timer($('#sgTimer'), CONFIG.songTimer, () => this.stopAudio());
+    this.done = new Set(); this.token = 0;
     this.a.addEventListener('timeupdate', () => { const s=this.cur(); if (s && this.a.currentTime >= (s.start||0)+(s.clip||10)) this.stopAudio(); });
     this.a.addEventListener('error', () => { if (this.a.getAttribute('src')) this.missing(); });
     this.a.addEventListener('pause', () => this.anim(false)); this.a.addEventListener('play', () => this.anim(true));
     $('#sgPlay').onclick = () => this.togglePlay(); $('#sgReplay').onclick = () => this.play(true);
     $('#sgReveal').onclick = () => this.reveal(); $('#sgNext').onclick = () => this.load(this.i+1);
-    $('#sgFile').onchange = e => { const fs=[...e.target.files]; fs.forEach(f => this.list.push({ title:f.name.replace(/\.[^.]+$/,'').toUpperCase(), artist:'(LOADED FROM DEVICE)', src:URL.createObjectURL(f), start:0, clip:15, hint:'' }));
-      if (fs.length){ toast(`${fs.length} SONG(S) ADDED FOR THIS SESSION`, '', 'SONG DETECTIVE'); this.renderList(); if (this.missingNow) this.load(this.list.length-fs.length); } };
-    HINTS.song = () => { const s = this.cur(); if (!s) return null; return s.hint || (s.artist && !/ARTIST NAME|LOADED/.test(s.artist) ? `ARTIST: ${s.artist}` : `TITLE STARTS WITH "${s.title.trim()[0]}"`); };
+    $('#sgReplaceBtn').onclick = () => { if (!this.cur()) { toast('NO TRACK SELECTED — ADD ONE FIRST','err'); return; } this.trackForm(this.cur()); };
+    $('#sgAddBtn').onclick = () => this.trackForm(null);
+    $('#sgRemoveBtn').onclick = () => this.removeCurrent();
+    this.rebuild(); this.i = Math.min(S.games.songIdx||0, Math.max(0,this.list.length-1));
+    HINTS.song = () => { const s = this.cur(); if (!s || this.revealed) return null; return s.hint || (s.artist && !/ARTIST NAME/.test(s.artist) ? `ARTIST: ${s.artist}` : `TITLE STARTS WITH "${s.title.trim()[0]}"`); };
+  },
+  /* Build the playable list: config tracks (minus removed ones, plus overrides) + custom tracks */
+  rebuild(){
+    const g = S.games; g.songOv ??= {}; g.songHidden ??= []; g.customSongs ??= [];
+    this.list = CONFIG.songs.map((s,k) => ({ ...s, id:'cfg'+k }))
+      .concat(g.customSongs.map(s => ({ ...s })))
+      .filter(s => !g.songHidden.includes(s.id))
+      .map(s => ({ ...s, ...(g.songOv[s.id]||{}) }));
   },
   cur(){ return this.list[this.i]; },
   enter(){ renderParticipants('song'); renderPower('song'); this.load(this.i, true); },
   onParticipants(){ this.renderAward(); },
-  renderList(){ $('#sgList').innerHTML = this.list.map((s,k) => `<div class="trk ${k===this.i?'cur':''}" data-k="${k}"><span class="n">${String(k+1).padStart(2,'0')}</span><span>${k===this.i && !this.revealed ? '▶ ??? (HIDDEN)' : (this.done?.has(k) ? esc(s.title) : 'TRACK '+(k+1)+' — ???')}</span></div>`).join('');
-    $$('#sgList .trk').forEach(t => t.onclick = () => this.load(+t.dataset.k)); },
+  renderList(){
+    $('#sgList').innerHTML = this.list.length ? this.list.map((s,k) => `<div class="trk ${k===this.i?'cur':''}" data-k="${k}"><span class="n">${String(k+1).padStart(2,'0')}</span><span>${k===this.i && !this.revealed ? '▶ ??? (HIDDEN)' : (this.done.has(s.id) ? esc(s.title) : 'TRACK '+(k+1)+' — ???')}${s.media?' 🎵':''}</span></div>`).join('')
+      : '<div class="trk">NO TRACKS — PRESS ➕ ADD NEW TRACK</div>';
+    $$('#sgList .trk[data-k]').forEach(t => t.onclick = () => this.load(+t.dataset.k));
+  },
   renderAward(){ renderAward($('#sgAward'), 'song', CONFIG.songPoints, 'SONG DETECTIVE', 'song', () => { this.reveal(true); }); },
-  load(k, quiet){
-    if (!this.list.length) return; this.i = ((k % this.list.length)+this.list.length) % this.list.length; S.games.songIdx = this.i; save();
-    this.done ??= new Set(); this.revealed = false; this.missingNow = false; this.stopAudio(); this.timer.set(CONFIG.songTimer);
-    const s = this.cur(); this.a.src = s.src; this.a.load();
-    $('#sgTrack').textContent = `TRACK ${this.i+1}/${this.list.length}`; $('#sgPts').textContent = `+${CONFIG.songPoints} PTS`;
+  async load(k, quiet){
+    this.stopAudio(); this.timer.set(CONFIG.songTimer); this.revealed = false; this.missingNow = false;
     const a = $('#sgAnswer'); a.className = 'answerCard hid'; a.innerHTML = '??? ??? ???';
+    if (!this.list.length){ this.i = 0; this.a.removeAttribute('src'); $('#sgTrack').textContent = 'TRACK 0/0'; this.renderList(); this.renderAward(); this.missing(); return; }
+    this.i = ((k % this.list.length)+this.list.length) % this.list.length; S.games.songIdx = this.i; save();
+    $('#sgTrack').textContent = `TRACK ${this.i+1}/${this.list.length}`; $('#sgPts').textContent = `+${CONFIG.songPoints} PTS`;
     this.renderList(); this.renderAward(); if (!quiet) SFX.nav();
+    const s = this.cur(), tok = ++this.token;
+    const src = s.media ? await MediaDB.url('song:'+s.id) : s.src;
+    if (tok !== this.token) return;                       // another track was selected meanwhile
+    if (!src){ this.a.removeAttribute('src'); this.missing(); return; }
+    this.a.src = src; this.a.load();
   },
   missing(){
     this.missingNow = true; this.anim(false);
     const s = this.cur(); const a = $('#sgAnswer'); a.className='answerCard';
-    a.innerHTML = `<span style="color:var(--red)">⚠ NO AUDIO FILE</span><small>Add <code>${esc(s.src)}</code> or edit <code>CONFIG.songs</code>, or use 📂 ADD MP3 FILES.</small>`;
+    a.innerHTML = s ? `<span style="color:var(--red)">⚠ NO AUDIO FILE</span><small>Press 🔁 REPLACE CURRENT TRACK to upload an MP3 for this track${s.media?'':` (or add <code>${esc(s.src)}</code> to the project)`}.</small>`
+                    : `<span style="color:var(--red)">⚠ PLAYLIST EMPTY</span><small>Press ➕ ADD NEW TRACK to upload an MP3.</small>`;
+  },
+  /* Modal used for both "replace current track" (track given) and "add new track" (null) */
+  trackForm(track){
+    const isNew = !track;
+    openModal(`<div class="px" style="font-size:13px;color:var(--purple)">${isNew ? '➕ ADD NEW TRACK' : '🔁 REPLACE TRACK '+(this.i+1)}</div>
+      <p class="mt">${isNew ? 'Upload an MP3 and type the answer players must guess.' : 'Upload a new MP3 for the selected track and set its answer.'}</p>
+      <div class="formGrid mt">
+        <label>MP3 FILE *<input type="file" accept="audio/*,.mp3" id="tfFile"></label>
+        <label>SONG TITLE (THE ANSWER) *<input type="text" id="tfTitle" maxlength="120" value="${isNew ? '' : esc(/\(edit me\)/.test(track.title) ? '' : track.title)}"></label>
+        <label>ARTIST<input type="text" id="tfArtist" maxlength="120" value="${isNew ? '' : esc(/ARTIST NAME/.test(track.artist||'') ? '' : track.artist||'')}"></label>
+        <div class="row"><label class="grow">START AT (SEC)<input type="number" id="tfStart" min="0" value="${isNew ? 0 : (track.start||0)}"></label>
+        <label class="grow">CLIP LENGTH (SEC)<input type="number" id="tfClip" min="1" value="${isNew ? 10 : (track.clip||10)}"></label></div>
+      </div>
+      <div class="row center mt2"><button class="btn green" id="tfSave">💾 SAVE TRACK</button><button class="btn" data-close="modal">CANCEL</button></div>`);
+    $('#tfFile').onchange = e => { const f = e.target.files[0]; if (f && !$('#tfTitle').value) $('#tfTitle').value = f.name.replace(/\.[^.]+$/,'').toUpperCase(); };
+    $('#tfSave').onclick = async () => {
+      const f = $('#tfFile').files[0], title = $('#tfTitle').value.trim();
+      if (!f){ SFX.bad(); shake($('#tfFile').parentElement); toast('CHOOSE AN MP3 FILE','err','SONG DETECTIVE'); return; }
+      if (!/^audio\//.test(f.type) && !/\.mp3$/i.test(f.name)){ SFX.bad(); toast('THAT FILE IS NOT AUDIO','err','SONG DETECTIVE'); return; }
+      if (!title){ SFX.bad(); shake($('#tfTitle').parentElement); toast('TYPE THE SONG TITLE','err','SONG DETECTIVE'); return; }
+      const data = { title, artist:$('#tfArtist').value.trim(), start:Math.max(0,+$('#tfStart').value||0), clip:Math.max(1,+$('#tfClip').value||10), media:true, hint:'' };
+      const id = isNew ? 'u'+Date.now().toString(36) : track.id;
+      const stored = await MediaDB.put('song:'+id, f);
+      if (isNew) S.games.customSongs.push({ id, ...data });
+      else if (S.games.customSongs.some(s => s.id === id)) Object.assign(S.games.customSongs.find(s => s.id === id), data);
+      else S.games.songOv[id] = data;
+      save(); $('#modal').classList.remove('open'); this.done.delete(id);
+      this.rebuild(); const k = this.list.findIndex(s => s.id === id); this.load(k < 0 ? 0 : k);
+      SFX.ok(); toast(`${isNew ? 'NEW TRACK ADDED' : 'TRACK REPLACED'}${stored ? '' : ' (THIS SESSION ONLY — browser storage unavailable)'}`, stored ? '' : 'err', 'SONG DETECTIVE');
+    };
+  },
+  removeCurrent(){
+    const s = this.cur(); if (!s){ toast('NOTHING TO REMOVE','err'); return; }
+    openModal(`<div class="px" style="font-size:13px;color:var(--red)">🗑 REMOVE TRACK ${this.i+1}?</div><p class="mt">The track and any uploaded MP3 for it will be removed from the playlist.</p>
+      <div class="row center mt2"><button class="btn red" id="trYes">REMOVE</button><button class="btn" data-close="modal">CANCEL</button></div>`);
+    $('#trYes').onclick = () => {
+      const g = S.games;
+      if (g.customSongs.some(x => x.id === s.id)) g.customSongs = g.customSongs.filter(x => x.id !== s.id); else { g.songHidden.push(s.id); delete g.songOv[s.id]; }
+      MediaDB.del('song:'+s.id); save(); $('#modal').classList.remove('open');
+      this.rebuild(); this.load(Math.min(this.i, this.list.length-1)); toast('TRACK REMOVED','', 'SONG DETECTIVE');
+    };
   },
   togglePlay(){ SFX.init(); if (this.missingNow){ SFX.bad(); shake($('#sgAnswer')); return; } if (!this.a.paused){ this.a.pause(); this.timer.stop(); } else this.play(false); },
   play(restart){
-    if (this.missingNow){ SFX.bad(); shake($('#sgAnswer')); return; }
+    if (this.missingNow || !this.cur()){ SFX.bad(); shake($('#sgAnswer')); return; }
     const s = this.cur(); const atEnd = this.a.currentTime >= (s.start||0)+(s.clip||10) - .05;
     if (restart || atEnd || this.a.currentTime < (s.start||0)) this.a.currentTime = s.start||0;
     this.a.play().then(() => { if (!this.revealed) this.timer.start(); }).catch(() => this.missing());
@@ -1527,7 +1549,7 @@ CTRL.song = {
   stopAudio(){ this.a.pause(); this.anim(false); },
   anim(on){ $('#sgVinyl').classList.toggle('spin', on); $('#sgEq').classList.toggle('on', on); $('#sgPlay').textContent = on ? '⏸ PAUSE' : '▶ PLAY CLIP'; },
   reveal(auto){
-    const s = this.cur(); if (!s) return; this.revealed = true; this.timer.stop(); this.done.add(this.i);
+    const s = this.cur(); if (!s) return; this.revealed = true; this.timer.stop(); this.done.add(s.id);
     const a = $('#sgAnswer'); a.className = 'answerCard pop'; a.innerHTML = `${esc(s.title)}<small>${esc(s.artist||'')}</small>`;
     if (!auto) SFX.fanfare(); this.renderList();
   },
@@ -1560,11 +1582,12 @@ CTRL.levelup = {
   leave(){ Music.stop(); $('#lvMusic').textContent = '♪ MUSIC: OFF'; }
 };
 
-/* ---------- 6.0 WHO'S THAT?! ---------- */
+/* ---------- 6.0 WHO'S THAT?! ----------
+   Characters = CONFIG.whosThat + characters added in the site (image stored in IndexedDB
+   under "whos:<id>"). The order list stores character ids.                               */
 CTRL.whos = {
   init(){
-    this.order = S.games.whosOrder?.length === CONFIG.whosThat.length ? S.games.whosOrder : CONFIG.whosThat.map((_,i)=>i);
-    this.i = S.games.whosIdx || 0; this.mode = S.games.whosMode || 'BLUR';
+    this.rebuild(); this.i = S.games.whosIdx || 0; this.mode = S.games.whosMode || 'BLUR'; this.token = 0;
     this.timer = new Timer($('#whTimer'), CONFIG.whosTimer, () => this.reveal());
     const origRender = this.timer.render.bind(this.timer);
     this.timer.render = () => { origRender(); this.applyBlur(); };
@@ -1572,20 +1595,38 @@ CTRL.whos = {
     $('#whReveal').onclick = () => this.reveal(); $('#whNext').onclick = () => this.show(this.i+1);
     $('#whShuffle').onclick = () => { this.order = shuffle(this.order); S.games.whosOrder = this.order; this.show(0); toast('CHARACTERS SHUFFLED','', "WHO'S THAT"); };
     $('#whMode').onclick = () => { const m=['BLUR','SHADOW','CLEAR']; this.mode = m[(m.indexOf(this.mode)+1)%3]; S.games.whosMode=this.mode; save(); this.applyMode(); };
-    HINTS.whos = () => { const c = this.c(); return c && !this.revealed ? `MOVIE: ${c.movie}` : null; };
+    $('#whAddBtn').onclick = () => this.addForm();
+    HINTS.whos = () => { const c = this.c(); if (!c || this.revealed) return null; return c.movie ? `MOVIE: ${c.movie}` : `NAME STARTS WITH "${c.name.trim()[0]}"`; };
   },
-  c(){ return CONFIG.whosThat[this.order[this.i]]; },
+  /* all characters by id; keep the saved order, append new ones, drop removed ones */
+  rebuild(){
+    S.games.customWhos ??= [];
+    this.chars = {};
+    CONFIG.whosThat.forEach((c,k) => this.chars['cfg'+k] = { ...c, id:'cfg'+k });
+    S.games.customWhos.forEach(c => this.chars[c.id] = { ...c });
+    const all = Object.keys(this.chars);
+    const kept = (S.games.whosOrder || []).filter(id => this.chars[id]);
+    this.order = kept.concat(all.filter(id => !kept.includes(id)));
+    S.games.whosOrder = this.order;
+  },
+  c(){ return this.chars[this.order[this.i]]; },
   enter(){ renderParticipants('whos'); renderPower('whos'); this.show(this.i, true); },
   onParticipants(){ renderAward($('#whAward'), 'whos', CONFIG.whosPoints, "WHO'S THAT?!", 'whos', () => this.reveal(true)); },
-  show(k, quiet){
-    const n = CONFIG.whosThat.length; this.i = ((k%n)+n)%n; S.games.whosIdx = this.i; save();
+  async show(k, quiet){
+    const n = this.order.length; this.i = ((k%n)+n)%n; S.games.whosIdx = this.i; save();
     this.revealed = false; this.timer.set(CONFIG.whosTimer); $('#whStart').textContent = '▶ START TIMER';
-    const c = this.c(), fr = $('#whFrame');
-    // NOTE: the name is NOT written into the page until REVEAL is pressed.
-    fr.innerHTML = `<span class="qm">?</span><img alt="Mystery character" src="${esc(c.img)}">`;
-    $('img', fr).onerror = () => { fr.innerHTML = `<div class="mediaPh"><h4>🖼 IMAGE NOT FOUND</h4><p>Put the picture at <code>${esc(c.img)}</code> or change the <code>img</code> link in <code>CONFIG.whosThat</code>.</p></div>`; };
+    const c = this.c(), fr = $('#whFrame'), tok = ++this.token;
     $('#whName').innerHTML = '? ? ?'; $('#whCount').textContent = `${this.i+1}/${n}`;
-    this.applyMode(); this.onParticipants(); if (!quiet) SFX.nav();
+    fr.innerHTML = `<span class="qm">?</span>`;
+    this.onParticipants(); if (!quiet) SFX.nav();
+    // NOTE: the name is NOT written into the page until REVEAL is pressed.
+    const src = c.media ? await MediaDB.url('whos:'+c.id) : c.img;
+    if (tok !== this.token) return;
+    const missing = () => { fr.innerHTML = `<div class="mediaPh"><h4>🖼 IMAGE NOT FOUND</h4><p>${c.media ? 'The uploaded picture is not in this browser any more. Add the character again with ➕ ADD CHARACTER.' : `Put the picture at <code>${esc(c.img)}</code> or change the <code>img</code> link in <code>CONFIG.whosThat</code>.`}</p></div>`; };
+    if (!src) { missing(); return; }
+    fr.innerHTML = `<span class="qm">?</span><img alt="Mystery character" src="${esc(src)}">`;
+    $('img', fr).onerror = missing;
+    this.applyMode();
   },
   applyMode(){ $('#whMode').textContent = 'MODE: '+this.mode; $('#whFrame').classList.toggle('shadow', this.mode==='SHADOW' && !this.revealed); this.applyBlur(); },
   applyBlur(){ const img = $('#whFrame img'); if (!img) return;
@@ -1593,165 +1634,217 @@ CTRL.whos = {
   reveal(auto){
     if (this.revealed) return; this.revealed = true; this.timer.stop(); const c = this.c();
     $('#whFrame').classList.remove('shadow'); this.applyBlur();
-    $('#whName').innerHTML = `<span class="pop" style="display:inline-block">${esc(c.name)}</span><small>${esc(c.movie)}</small>`;
+    $('#whName').innerHTML = `<span class="pop" style="display:inline-block">${esc(c.name)}</span><small>${esc(c.movie||'')}</small>`;
     flash(); if (!auto) SFX.fanfare();
-  }
+  },
+  /* Add-character modal: name + image upload (+ optional movie for the hint). Several can be added in a row. */
+  addForm(){
+    openModal(`<div class="px" style="font-size:13px;color:var(--blue)">➕ ADD CHARACTER</div>
+      <p class="mt">Upload a picture and type the character's name. The name stays hidden until REVEAL.</p>
+      <div class="formGrid mt">
+        <label>CHARACTER NAME *<input type="text" id="cfName" maxlength="60"></label>
+        <label>PICTURE *<input type="file" accept="image/*" id="cfImg"></label>
+        <label>MOVIE / SHOW (OPTIONAL, USED FOR HINTS)<input type="text" id="cfMovie" maxlength="80"></label>
+      </div>
+      <div class="row center mt2"><button class="btn green" id="cfSave">➕ ADD CHARACTER</button><button class="btn" data-close="modal">DONE</button></div>
+      <div class="px mt2" style="font-size:9px;color:var(--gray)">ADDED CHARACTERS</div><div id="cfList" class="mt"></div>`);
+    this.renderAdded();
+    $('#cfSave').onclick = async () => {
+      const name = $('#cfName').value.trim(), f = $('#cfImg').files[0];
+      if (!name){ SFX.bad(); shake($('#cfName').parentElement); toast('TYPE THE CHARACTER NAME','err',"WHO'S THAT"); return; }
+      if (!f || !/^image\//.test(f.type)){ SFX.bad(); shake($('#cfImg').parentElement); toast('CHOOSE AN IMAGE FILE','err',"WHO'S THAT"); return; }
+      const id = 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      const stored = await MediaDB.put('whos:'+id, f);
+      S.games.customWhos.push({ id, name:name.toUpperCase(), movie:$('#cfMovie').value.trim(), media:true });
+      save(); this.rebuild(); $('#whCount').textContent = `${this.i+1}/${this.order.length}`;
+      $('#cfName').value = ''; $('#cfMovie').value = ''; $('#cfImg').value = ''; $('#cfName').focus();
+      this.renderAdded(); SFX.ok();
+      toast(`CHARACTER ADDED — ${this.order.length} IN THE GAME${stored ? '' : ' (THIS SESSION ONLY)'}`, stored ? '' : 'err', "WHO'S THAT");
+    };
+  },
+  async renderAdded(){
+    const el = $('#cfList'); if (!el) return;
+    const list = S.games.customWhos;
+    if (!list.length){ el.innerHTML = '<p class="muted">None yet.</p>'; return; }
+    el.innerHTML = list.map(c => `<div class="lbRow"><img class="thumb" data-thumb="${c.id}" alt=""><span class="nm">${esc(c.name)}${c.movie?`<br><span class="muted" style="font-size:8px">${esc(c.movie)}</span>`:''}</span><button class="btn sm red" data-delc="${c.id}" title="Remove">🗑</button></div>`).join('');
+    $$('[data-delc]', el).forEach(b => b.onclick = () => this.removeChar(b.dataset.delc));
+    for (const c of list){ const u = await MediaDB.url('whos:'+c.id); const im = el.querySelector(`[data-thumb="${c.id}"]`); if (im && u) im.src = u; }
+  },
+  removeChar(id){
+    const curId = this.order[this.i];
+    S.games.customWhos = S.games.customWhos.filter(c => c.id !== id); MediaDB.del('whos:'+id);
+    this.rebuild(); save(); this.renderAdded();
+    if (curId === id) this.show(Math.min(this.i, this.order.length-1), true);
+    else { this.i = Math.max(0, this.order.indexOf(curId)); S.games.whosIdx = this.i; save(); $('#whCount').textContent = `${this.i+1}/${this.order.length}`; }
+    toast('CHARACTER REMOVED','', "WHO'S THAT");
+  },
 };
 
-/* ---------- 7.0 SEEN JEEM ---------- */
-const normAr = s => String(s).toLowerCase().trim().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/^ال/,'').replace(/\s+/g,' ');
-CTRL.seenjeem = {
-  init(){
-    S.games.sjDone ??= []; this.lvl = S.games.sjLvl || 0;
-    this.timer = new Timer($('#sjTimer'), 30, () => this.reveal(true));
-    $$('[data-sjlvl]').forEach(b => b.onclick = () => { this.lvl = +b.dataset.sjlvl; S.games.sjLvl = this.lvl; save(); this.board(); SFX.click(); });
-    $('#sjReset').onclick = () => { S.games.sjDone = []; save(); this.board(); toast('BOARD RESET','', 'SEEN JEEM'); };
-    $('#sjBack').onclick = () => this.close();
-    $('#sjReveal').onclick = () => this.reveal();
-    $('#sjSubmit').onclick = () => this.manual(); $('#sjInput').onkeydown = e => { if (e.key==='Enter') this.manual(); e.stopPropagation(); };
-    HINTS.seenjeem = () => { if (this.q == null || this.done) return null; const q = CONFIG.seenJeem.questions[this.q];
-      // 50/50: hide two wrong choices
-      const wrong = shuffle($$('#sjChoices .choice').filter(b => +b.dataset.k !== q.answer && !b.classList.contains('wrong'))).slice(0,2); wrong.forEach(b => b.classList.add('gone'));
-      return (q.hint ? q.hint + ' · ' : '') + 'TWO WRONG ANSWERS REMOVED'; };
-  },
-  enter(){ renderParticipants('seenjeem'); renderPower('seenjeem'); this.board(); },
-  onParticipants(){ this.whoBar(); },
-  board(){
-    const cfg = CONFIG.seenJeem, cats = cfg.categories;
-    $$('[data-sjlvl]').forEach(b => b.classList.toggle('on', +b.dataset.sjlvl === this.lvl));
-    const lv = this.lvl ? [this.lvl] : [1,2,3];
-    $('#sjBoard').style.gridTemplateColumns = `repeat(${cats.length}, 1fr)`;
-    let h = cats.map(c => `<div class="sjCat">${esc(c)}</div>`).join('');
-    lv.forEach(L => cats.forEach(c => {
-      const qs = cfg.questions.map((q,k)=>({q,k})).filter(x => x.q.cat===c && x.q.level===L);
-      if (!qs.length){ h += `<div class="sjTile done">—</div>`; return; }
-      const open = qs.find(x => !S.games.sjDone.includes(x.k));
-      h += open ? `<button class="sjTile" data-q="${open.k}">${L*10}<span class="lvl">${['','EASY','MEDIUM','HARD'][L]}</span></button>` : `<div class="sjTile done">✔</div>`;
-    }));
-    $('#sjBoard').innerHTML = h;
-    $$('#sjBoard [data-q]').forEach(b => b.onclick = () => this.open(+b.dataset.q));
-  },
-  whoBar(){
-    const el = $('#sjWho'); if (!parts('seenjeem').includes(this.who)) this.who = null;
-    el.innerHTML = `<span class="lbl">WHO'S ANSWERING?</span>` + parts('seenjeem').map(id => `<button class="pchip ${this.who===id?'on':''} ${this.tried?.includes(id)?'used':''}" data-w="${id}" ${this.tried?.includes(id)?'disabled title="already tried"':''}>${spriteHTML(P(id))}${esc(P(id).name)}</button>`).join('');
-    $$('[data-w]', el).forEach(b => b.onclick = () => { this.who = b.dataset.w; SFX.click(); this.whoBar(); });
-  },
-  open(k){
-    const q = CONFIG.seenJeem.questions[k]; this.q = k; this.done = false; this.who = null; this.tried = [];
-    $('#sjBoard').classList.add('hidden'); $('#sjQBox').classList.remove('hidden');
-    $('#sjCatTag').textContent = q.cat; $('#sjPtsTag').textContent = `${q.level*10} PTS · ${['','EASY','MEDIUM','HARD'][q.level]}`;
-    $('#sjQ').textContent = q.q; $('#sjInput').value = '';
-    const L = ['أ','ب','ج','د'];
-    $('#sjChoices').innerHTML = q.choices.map((c,i) => `<button class="choice" data-k="${i}"><span class="k">${L[i]}</span>${esc(c)}</button>`).join('');
-    $$('#sjChoices .choice').forEach(b => b.onclick = () => this.answer(+b.dataset.k, b));
-    const a = $('#sjAnswer'); a.className = 'answerCard hid ar'; a.textContent = '؟';
-    this.whoBar(); this.timer.set(CONFIG.seenJeem.timerByLevel[q.level] || 30); this.timer.start(); SFX.nav();
-    $('#sjQBox').scrollIntoView({ behavior:'smooth', block:'start' });
-  },
-  needWho(){ if (!this.who){ SFX.bad(); shake($('#sjWho')); toast("SELECT WHO'S ANSWERING FIRST", 'err', 'SEEN JEEM'); return false; } return true; },
-  answer(i, btn){
-    if (this.done || !this.needWho()) return; const q = CONFIG.seenJeem.questions[this.q];
-    if (i === q.answer){ btn.classList.add('right'); this.win(); }
-    else { btn.classList.add('wrong'); this.miss(); }
-  },
-  manual(){
-    if (this.done || !this.needWho()) return; const q = CONFIG.seenJeem.questions[this.q], v = normAr($('#sjInput').value);
-    if (!v) return;
-    const ok = [q.choices[q.answer], ...(q.accept||[])].some(x => normAr(x) === v);
-    if (ok){ $$('#sjChoices .choice')[q.answer].classList.add('right'); this.win(); } else { shake($('#sjInput')); this.miss(); }
-  },
-  win(){ const q = CONFIG.seenJeem.questions[this.q]; addPoints(this.who, q.level*10, `SEEN JEEM (${q.cat})`, 'seenjeem', 'seenjeem'); SFX.ok(); this.reveal(true); },
-  miss(){ SFX.bad(); toast(`WRONG! ${P(this.who).name} IS OUT FOR THIS QUESTION`, 'err', 'SEEN JEEM'); this.tried.push(this.who); this.who = null; this.whoBar();
-    if (this.tried.length >= parts('seenjeem').length) this.reveal(true); },
-  reveal(auto){
-    if (this.q == null) return; const q = CONFIG.seenJeem.questions[this.q]; this.done = true; this.timer.stop();
-    if (!S.games.sjDone.includes(this.q)) S.games.sjDone.push(this.q); save();
-    $$('#sjChoices .choice')[q.answer]?.classList.add('right');
-    const a = $('#sjAnswer'); a.className = 'answerCard ar pop'; a.textContent = 'الإجابة: ' + q.choices[q.answer];
-    if (!auto) SFX.fanfare();
-  },
-  close(){ this.q = null; this.timer.stop(); $('#sjQBox').classList.add('hidden'); $('#sjBoard').classList.remove('hidden'); this.board(); },
-};
-
-/* ---------- 8.0 ALL THE ROLES ---------- */
+/* ---------- 8.0 ALL THE ROLES ----------
+   Host types an actor's name. Each player lists that actor's works; the host enters how many
+   were correct per player. 1 correct answer = 1 point, ADDED to the player's existing score. */
 CTRL.roles = {
   init(){
-    this.bag = new ShuffleBag(CONFIG.challenges); this.assigned = S.games.roles || {}; this.victim = null;
-    this.timer = new Timer($('#rlTimer'), CONFIG.challengeTimer);
-    $('#rlAssign').onclick = () => this.assign(); $('#rlChal').onclick = () => this.challenge();
-    $('#rlStartT').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } this.timer.running ? this.timer.stop() : this.timer.start(); };
-    $('#rlDone').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } addPoints(this.victim, CONFIG.challengePoints, 'CHALLENGE COMPLETED', 'roles', 'roles'); this.timer.stop(); this.victim = null; FX.show(3,800); };
-    $('#rlFail').onclick = () => { if (!this.victim) { toast('PICK A CHALLENGE FIRST','err'); return; } SFX.bad(); toast(`${P(this.victim).name} FAILED THE CHALLENGE. SHAME. 🔔`, 'err', 'ALL THE ROLES'); this.timer.stop(); this.victim = null; };
+    this.timer = new Timer($('#rlTimer'), CONFIG.rolesTimer);
+    S.games.rolesHist ??= [];
+    $('#rlActor').value = S.games.rolesActor || '';
+    $('#rlActor').oninput = () => { S.games.rolesActor = $('#rlActor').value; save(); };
+    $('#rlStartT').onclick = () => { if (this.timer.running){ this.timer.stop(); $('#rlStartT').textContent = '▶ TIMER'; } else { if (this.timer.left <= 0) this.timer.reset(); this.timer.start(); $('#rlStartT').textContent = '⏸ PAUSE'; } SFX.click(); };
+    $('#rlResetT').onclick = () => { this.timer.reset(); $('#rlStartT').textContent = '▶ TIMER'; };
+    $('#rlAward').onclick = () => this.award();
+    $('#rlClear').onclick = () => { this.counts = {}; this.render(); };
+    this.counts = {};
   },
-  enter(){ renderParticipants('roles'); renderPower('roles'); this.render(); },
+  enter(){ renderParticipants('roles'); renderPower('roles'); this.render(); this.history(); },
   onParticipants(){ this.render(); },
   render(){
-    $('#roleGrid').innerHTML = parts('roles').map(id => { const p = P(id), r = this.assigned[id];
-      return `<div class="roleCard"><div class="sprite">${spriteHTML(p)}</div><div class="who">${esc(p.name)}</div><div class="slot" data-slot="${id}"><div class="rn">${r?esc(r.name):'???'}</div><div class="rd">${r?esc(r.desc):'Waiting for a role…'}</div></div></div>`; }).join('');
+    $('#roleGrid').innerHTML = parts('roles').map(id => { const p = P(id), v = this.counts[id] || 0;
+      return `<div class="roleCard"><div class="sprite">${spriteHTML(p)}</div><div class="who">${esc(p.name)}</div>
+        <div class="slot"><div class="rn">CORRECT ANSWERS</div>
+          <div class="cnt"><button class="btn sm" data-dec="${id}">−</button><input type="number" min="0" step="1" inputmode="numeric" value="${v}" data-cnt="${id}" aria-label="${esc(p.name)} correct answers"><button class="btn sm" data-inc="${id}">+</button></div>
+          <div class="rd">= +${v} PT${v===1?'':'S'} · TOTAL NOW ${S.scores[id]}</div></div></div>`; }).join('');
+    const set = (id, v) => { this.counts[id] = Math.max(0, Math.min(999, Math.floor(+v || 0))); this.render(); };
+    $$('[data-inc]').forEach(b => b.onclick = () => { set(b.dataset.inc, (this.counts[b.dataset.inc]||0)+1); SFX.click(); });
+    $$('[data-dec]').forEach(b => b.onclick = () => { set(b.dataset.dec, (this.counts[b.dataset.dec]||0)-1); SFX.click(); });
+    $$('[data-cnt]').forEach(i => { i.onchange = () => set(i.dataset.cnt, i.value); i.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') i.blur(); }; });
   },
-  assign(){
-    const pool = shuffle(CONFIG.roles); let ticks = 0; SFX.init();
-    const slots = $$('#roleGrid .slot'); slots.forEach(s => s.classList.add('rolling'));
-    const iv = setInterval(() => { slots.forEach(s => { const r = rand(CONFIG.roles); $('.rn',s).textContent = r.name; $('.rd',s).textContent = '…'; }); SFX.tick(); if (++ticks > 16){ clearInterval(iv);
-      this.assigned = {}; parts('roles').forEach((id,k) => this.assigned[id] = pool[k % pool.length]); S.games.roles = this.assigned; save(); this.render(); SFX.ok(); toast('ROLES ASSIGNED. NO REFUNDS.', '', 'ALL THE ROLES'); } }, 80);
+  award(){
+    const actor = $('#rlActor').value.trim();
+    if (!actor){ SFX.bad(); shake($('#rlActor')); toast("TYPE THE ACTOR'S NAME FIRST",'err','ALL THE ROLES'); return; }
+    // read any value still being typed in an input
+    $$('[data-cnt]').forEach(i => this.counts[i.dataset.cnt] = Math.max(0, Math.floor(+i.value || 0)));
+    const entries = parts('roles').map(id => [id, this.counts[id] || 0]).filter(([,n]) => n > 0);
+    if (!entries.length){ SFX.bad(); toast('ENTER AT LEAST ONE CORRECT ANSWER','err','ALL THE ROLES'); return; }
+    entries.forEach(([id,n]) => addPoints(id, n, `ALL THE ROLES: ${actor} (${n} correct)`, 'roles', 'roles'));
+    S.games.rolesHist.unshift({ actor, counts:Object.fromEntries(entries), t:Date.now() }); S.games.rolesHist = S.games.rolesHist.slice(0,30);
+    S.games.rolesActor = ''; $('#rlActor').value = ''; save();
+    this.counts = {}; this.timer.reset(); $('#rlStartT').textContent = '▶ TIMER';
+    this.render(); this.history(); FX.show(3,800); SFX.ok();
   },
-  challenge(){
-    this.victim = rand(parts('roles')); const c = this.bag.next(); this.timer.set(CONFIG.challengeTimer);
-    $('#rlChallenge').innerHTML = `<span class="px" style="font-size:12px;color:#ff5fc8">${esc(P(this.victim).name)}</span><br>${esc(c)}`;
-    $('#rlChallenge').classList.remove('pop'); void $('#rlChallenge').offsetWidth; $('#rlChallenge').classList.add('pop'); SFX.glitch();
+  history(){
+    const h = S.games.rolesHist || [];
+    $('#rlHist').innerHTML = h.length ? h.map(r => `<div>🎬 <b style="color:#fff">${esc(r.actor)}</b> — ${Object.entries(r.counts).map(([id,n]) => `${esc(P(id)?.name)} +${n}`).join(' · ')}</div>`).join('') : '<div>No rounds yet.</div>';
   },
 };
 HINTS.roles = () => null;
 HINTS.street = () => null;
 
-/* ---------- 9.0 THE HUMAN DATABASE ---------- */
+/* ---------- 9.0 THE HUMAN DATABASE — secret-vote game ----------
+   Phases: (none) → write → pass ⇄ ballot → ready → results → … → final
+   The trait writer votes first, then everyone else in player order.
+   Only voters for the SINGLE most-voted player score 1 point; ties score nothing.
+   Being voted for never gives points by itself.                                            */
 CTRL.database = {
   init(){
-    this.qs = this.generate(); this.bag = new ShuffleBag(this.qs.map((_,i)=>i)); this.count = 0; this.cur = null;
     $('#dbSearch').oninput = () => this.records(); $('#dbSearch').onkeydown = e => e.stopPropagation();
-    $('#dbNew').onclick = () => this.ask(); $('#dbReveal').onclick = () => this.reveal();
-    HINTS.database = () => { if (!this.cur || this.done) return null;
-      const wrong = shuffle($$('#dbChoices .dbChoice').filter(b => b.dataset.id !== this.cur.answer && !b.classList.contains('wrong') && !b.classList.contains('gone'))).slice(0,2);
-      wrong.forEach(b => b.classList.add('gone')); return 'TWO WRONG PLAYERS ELIMINATED'; };
+    HINTS.database = () => null;
   },
-  /* Questions built ONLY from the player data in CONFIG (no invented facts) */
-  generate(){
-    const qs = [];
-    CONFIG.players.forEach(p => {
-      p.strengths.forEach(s => qs.push({ q:`WHICH PLAYER HAS THE STRENGTH "${s}"?`, answer:p.id }));
-      qs.push({ q:`WHO IS KNOWN AS "${p.nickname}"?`, answer:p.id });
-      qs.push({ q:`WHO IS PLAYER ${p.num}?`, answer:p.id });
-      qs.push({ q:`WHOSE SPECIAL POWER IS "${CONFIG.powers[p.power].name}"?`, answer:p.id });
-      qs.push({ q:`WHOSE FILE IS THIS? "${p.description}"`, answer:p.id });
-    });
-    return qs.concat(CONFIG.humanDb.extra || []);
-  },
-  enter(){ renderParticipants('database'); renderPower('database'); this.records(); this.whoBar(); },
-  onParticipants(){ this.whoBar(); },
+  get h(){ return S.games.hdb; },
+  enter(){ if (this.h && this.h.phase === 'ballot') this.h.phase = 'pass'; renderParticipants('database'); renderPower('database'); this.records(); this.render(); },
+  onParticipants(){ if (!this.h || this.h.phase === 'final') this.render(); },
   records(){
     const q = $('#dbSearch').value.trim().toUpperCase();
     const list = CONFIG.players.filter(p => !q || [p.name,p.nickname,p.description,...p.strengths,CONFIG.powers[p.power].name].join(' ').toUpperCase().includes(q));
     $('#dbRecords').innerHTML = list.map(p => `<div class="dbRec"><b>RECORD ${p.num} :: ${esc(p.name)}</b><br>ALIAS ....... ${esc(p.nickname)}<br>STRENGTHS ... ${esc(p.strengths.join(' / '))}<br>POWER ....... ${esc(CONFIG.powers[p.power].name)}<br>SCORE ....... ${S.scores[p.id]}</div>`).join('') || '<div class="dbRec">0 RECORDS FOUND. TRY AGAIN, HUMAN.</div>';
   },
-  whoBar(){
-    const el = $('#dbWho'); if (!parts('database').includes(this.who)) this.who = null;
-    el.innerHTML = `<span class="lbl">ANSWERING:</span>` + parts('database').map(id => `<button class="pchip ${this.who===id?'on':''}" data-w="${id}" ${this.tried?.includes(id)?'disabled style="opacity:.2"':''}>${esc(P(id).name)}</button>`).join('');
-    $$('[data-w]', el).forEach(b => b.onclick = () => { this.who = b.dataset.w; SFX.click(); this.whoBar(); });
+  writer(h){ return h.players[(h.round-1) % h.players.length]; },
+  /* writer first, then the rest following the established player order */
+  voteOrder(h){ const w = h.players.indexOf(this.writer(h)); return h.players.slice(w).concat(h.players.slice(0,w)); },
+  newGame(){
+    const pl = CONFIG.players.map(p => p.id).filter(id => parts('database').includes(id));
+    if (pl.length < CONFIG.humanDb.minPlayers){ SFX.bad(); toast(`NEED AT LEAST ${CONFIG.humanDb.minPlayers} PLAYERS`,'err','DATABASE'); return; }
+    S.games.hdb = { players:pl, round:1, phase:'write', trait:'', votes:{}, vi:0, results:[] }; save(); SFX.nav(); this.render();
   },
-  ask(){
-    this.cur = this.qs[this.bag.next()]; this.done = false; this.who = null; this.tried = []; this.count++;
-    $('#dbCount').textContent = 'Q ' + this.count; $('#dbQ').textContent = '> ' + this.cur.q;
-    $('#dbChoices').innerHTML = CONFIG.players.map(p => `<button class="dbChoice" data-id="${p.id}">${spriteHTML(p)}${esc(p.name)}</button>`).join('');
-    $$('#dbChoices .dbChoice').forEach(b => b.onclick = () => this.answer(b));
-    this.whoBar(); SFX.nav();
+  render(){
+    const el = $('#dbGame'), h = this.h, R = CONFIG.humanDb.rounds;
+    const head = h ? `<div class="row" style="justify-content:space-between"><span>ROUND ${Math.min(h.round,R)}/${R}</span><span>${h.players.map(id=>esc(P(id).name)).join(' · ')}</span></div>` : '';
+    const nm = id => esc(P(id).name);
+    if (!h){
+      el.innerHTML = `<div>&gt; SECRET VOTE PROTOCOL // ${R} ROUNDS</div>
+        <div class="mt" style="color:#fff">1. One player writes a personality trait.<br>2. Everyone votes in secret — the writer first, then the others in order.<br>3. Votes are revealed only when all are in.<br>4. Everyone who voted for the single most-voted player gets <b>+1</b>. A tie = no points. Being chosen gives no points.</div>
+        <div class="row center mt2"><button class="btn green big" id="dbStart">▶ START NEW GAME</button></div>
+        <p class="mt" style="font-size:18px">Players come from PLAYERS IN THIS GAME above (min ${CONFIG.humanDb.minPlayers}).</p>`;
+      $('#dbStart').onclick = () => this.newGame(); return;
+    }
+    if (h.phase === 'write'){
+      el.innerHTML = head + `<div class="mt">&gt; TRAIT WRITER: <b style="color:#fff">${nm(this.writer(h))}</b></div>
+        <div class="mt" style="color:#fff">Write a personality trait or characteristic:</div>
+        <input class="dbInput mt" id="dbTrait" maxlength="120" placeholder="e.g. THE MOST ADVENTUROUS PERSON" value="${esc(h.trait)}" autocomplete="off">
+        <div class="row center mt2"><button class="btn green" id="dbLock">🔒 LOCK TRAIT &amp; START VOTING</button></div>`;
+      const inp = $('#dbTrait'); inp.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') $('#dbLock').click(); }; inp.oninput = () => { h.trait = inp.value; save(); };
+      $('#dbLock').onclick = () => { const t = inp.value.trim(); if (!t){ SFX.bad(); shake(inp); toast('WRITE A TRAIT FIRST','err','DATABASE'); return; }
+        h.trait = t; h.votes = {}; h.vi = 0; h.phase = 'pass'; save(); SFX.coin(); this.render(); };
+      return;
+    }
+    const order = this.voteOrder(h), traitBox = `<div class="dbTrait mt">“${esc(h.trait)}”</div>`;
+    const castBar = `<div class="mt">&gt; VOTES CAST: ${Object.keys(h.votes).length}/${order.length} ${order.map(id => h.votes[id] ? '🔒' : '▫').join(' ')}</div>`;
+    if (h.phase === 'pass'){
+      const v = order[h.vi];
+      el.innerHTML = head + traitBox + castBar + `<div class="dbPass mt">🔒 PRIVATE VOTE<br><span>PASS THE DEVICE TO</span><br><b>${nm(v)}</b><br><span>EVERYONE ELSE — LOOK AWAY!</span></div>
+        <div class="row center mt"><button class="btn green big" id="dbOpen">I'M ${nm(v)} — OPEN MY BALLOT</button></div>`;
+      $('#dbOpen').onclick = () => { h.phase = 'ballot'; this.pick = null; SFX.click(); this.render(); };
+      return;
+    }
+    if (h.phase === 'ballot'){
+      const v = order[h.vi];
+      el.innerHTML = head + traitBox + `<div class="mt">&gt; ${nm(v)}, WHO FITS THIS TRAIT BEST? (SECRET)</div>
+        <div class="dbChoices">${h.players.map(id => `<button class="dbChoice ${this.pick===id?'right':''}" data-vote="${id}">${spriteHTML(P(id))}${nm(id)}</button>`).join('')}</div>
+        <div class="row center mt"><button class="btn green" id="dbSubmit" ${this.pick?'':'disabled'}>🔒 SUBMIT SECRET VOTE</button><button class="btn" id="dbCancel">◀ HIDE</button></div>`;
+      $$('[data-vote]', el).forEach(b => b.onclick = () => { this.pick = b.dataset.vote; SFX.click(); this.render(); });
+      $('#dbCancel').onclick = () => { this.pick = null; h.phase = 'pass'; this.render(); };
+      $('#dbSubmit').onclick = () => {
+        if (!this.pick || h.phase !== 'ballot') return;
+        h.votes[v] = this.pick; this.pick = null; h.vi++;
+        h.phase = h.vi >= order.length ? 'ready' : 'pass'; save(); SFX.coin(); flash();
+        toast(`${P(v).name}'S VOTE IS LOCKED 🔒`, '', 'DATABASE'); this.render();
+      };
+      return;
+    }
+    if (h.phase === 'ready'){
+      el.innerHTML = head + traitBox + castBar + `<div class="dbPass mt">ALL ${order.length} VOTES ARE IN<br><span>GATHER AROUND THE SCREEN</span></div>
+        <div class="row center mt"><button class="btn gold big" id="dbRevealR">👁 REVEAL RESULTS</button></div>`;
+      $('#dbRevealR').onclick = () => this.reveal(); return;
+    }
+    if (h.phase === 'results'){
+      const r = h.results[h.results.length-1];
+      el.innerHTML = head + `<div class="dbTrait mt">“${esc(r.trait)}”</div>` + this.resultHTML(r, h) +
+        `<div class="row center mt2"><button class="btn green" id="dbNextR">${r.round >= R ? '🏁 FINAL RESULTS' : 'NEXT ROUND ▶'}</button></div>`;
+      $('#dbNextR').onclick = () => { if (r.round >= R) h.phase = 'final'; else { h.round++; h.phase = 'write'; h.trait = ''; h.votes = {}; h.vi = 0; } save(); SFX.nav(); this.render(); };
+      return;
+    }
+    if (h.phase === 'final'){
+      const tot = Object.fromEntries(h.players.map(id => [id, h.results.reduce((a,r) => a + (r.awarded.includes(id)?1:0), 0)]));
+      const rk = [...h.players].sort((a,b) => tot[b]-tot[a]);
+      el.innerHTML = `<div>&gt; GAME COMPLETE — ${R} ROUNDS</div>
+        <table class="tbl mt"><tr><th>#</th><th>TRAIT</th><th>MOST VOTES</th><th>SCORED +1</th></tr>${h.results.map(r => `<tr><td>${r.round}</td><td>${esc(r.trait)}</td><td>${r.winner ? nm(r.winner) : 'TIE'}</td><td>${r.awarded.map(nm).join(', ') || '—'}</td></tr>`).join('')}</table>
+        <div class="mt">&gt; FINAL LEADERBOARD (THIS GAME / TOTAL SCORE)</div>
+        ${rk.map((id,k) => `<div class="lbRow ${k===0&&tot[id]>0?'first':''}"><span class="rk">#${k+1}</span>${spriteHTML(P(id))}<span class="nm">${nm(id)}</span><span class="sc">+${tot[id]}</span><span class="muted" style="font-family:var(--px);font-size:9px">${S.scores[id]} TOTAL</span></div>`).join('')}
+        <div class="row center mt2"><button class="btn green" id="dbAgain">↻ NEW GAME</button></div>`;
+      $('#dbAgain').onclick = () => { delete S.games.hdb; save(); this.render(); };
+    }
   },
-  answer(b){
-    if (this.done) return;
-    if (!this.who){ SFX.bad(); shake($('#dbWho')); toast('SELECT WHO IS ANSWERING','err','DATABASE'); return; }
-    if (b.dataset.id === this.cur.answer){ b.classList.add('right'); this.done = true; addPoints(this.who, 10, 'HUMAN DATABASE', 'database', 'database'); SFX.ok(); }
-    else { b.classList.add('wrong'); SFX.bad(); toast(`ACCESS DENIED, ${P(this.who).name}`, 'err', 'DATABASE'); this.tried.push(this.who); this.who=null; this.whoBar(); if (this.tried.length >= parts('database').length) this.reveal(); }
+  /* Tally votes, decide the winner (unique max only) and award points exactly once */
+  reveal(){
+    const h = this.h; if (!h || h.phase !== 'ready') return;
+    const counts = Object.fromEntries(h.players.map(id => [id, 0]));
+    Object.values(h.votes).forEach(t => counts[t]++);
+    const max = Math.max(...Object.values(counts));
+    const leaders = h.players.filter(id => counts[id] === max);
+    const winner = leaders.length === 1 ? leaders[0] : null;
+    const awarded = winner ? h.players.filter(v => h.votes[v] === winner) : [];
+    const r = { round:h.round, trait:h.trait, writer:this.writer(h), votes:{...h.votes}, counts, winner, awarded };
+    h.results.push(r); h.phase = 'results'; save();            // phase changes BEFORE scoring → no double awards
+    awarded.forEach(id => addPoints(id, 1, `HUMAN DATABASE R${h.round}: ${h.trait}`, 'database', 'database'));
+    flash(); winner ? SFX.fanfare() : SFX.bad();
+    if (!winner) toast('TIE FOR MOST VOTES — NOBODY SCORES THIS ROUND','err','DATABASE');
+    this.render();
   },
-  reveal(){ if (!this.cur) return; this.done = true; $(`#dbChoices [data-id="${this.cur.answer}"]`)?.classList.add('right'); SFX.fanfare(); },
+  resultHTML(r, h){
+    const max = Math.max(1, ...Object.values(r.counts));
+    return `<div class="mt">${h.players.map(id => { const voters = h.players.filter(v => r.votes[v] === id);
+        return `<div class="voteRow ${r.winner===id?'win':''}"><span class="vn">${esc(P(id).name)}</span><span class="vb"><i style="width:${r.counts[id]/max*100}%"></i></span><span class="vc">${r.counts[id]}</span><span class="vv">${voters.length ? '← '+voters.map(v=>esc(P(v).name)).join(', ') : ''}</span></div>`; }).join('')}</div>
+      <div class="dbPass mt">${r.winner ? `MOST VOTES: <b>${esc(P(r.winner).name)}</b><br><span>+1 POINT TO: ${r.awarded.map(id=>esc(P(id).name)).join(', ')}</span>` : `<b>TIE!</b><br><span>NOBODY SCORES THIS ROUND</span>`}</div>`;
+  },
 };
 
 /* ---------- 10.0 GUESS THE LEGEND ---------- */
@@ -1776,7 +1869,7 @@ CTRL.legend = {
     const L = this.L();
     $('#lgCount').textContent = `LEGEND ${this.i+1}/${CONFIG.legends.length}`; $('#lgWorth').textContent = `WORTH: ${this.worth()}`;
     $('#lgClues').innerHTML = L.clues.map((c,k) => k < this.shown ? `<div class="clue pop"><span class="cn">CLUE ${k+1}</span>${esc(c)}</div>` : `<div class="clue locked"><span class="cn">CLUE ${k+1}</span>🔒 LOCKED</div>`).join('');
-    $('#lgAns').innerHTML = this.revealed ? `<span class="pop" style="display:inline-block">${esc(L.answer)}</span>` : '? ? ?';
+    $('#lgAns').innerHTML = this.revealed ? `<span class="pop" style="display:inline-block">${esc(L.answer)}${L.ar ? `<br><span class="ar" dir="rtl" style="font-size:.9em">${esc(L.ar)}</span>` : ''}</span>` : '? ? ?';
     this.award();
   },
   clue(){ const L = this.L(); if (this.revealed) return; if (this.shown >= L.clues.length){ toast('NO MORE CLUES — GUESS OR REVEAL!','err'); return; } this.shown++; SFX.coin(); this.render(); if (!this.timer.running) this.timer.start(); },
